@@ -263,8 +263,9 @@ const ProductManagementSystem: React.FC = () => {
       </div>
     </section>
 
+<div className='flex flex-row gap-4'>
     {/* Products Table */}
-    <section className="mb-8 p-5 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-x-auto">
+    <section className="mb-8 p-5 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-x-auto flex-1">
       <h3 className="text-xl font-semibold mb-4 text-center uppercase tracking-wide">
         Productos Disponibles
       </h3>
@@ -301,7 +302,7 @@ const ProductManagementSystem: React.FC = () => {
                     className={`px-4 py-2 rounded-md text-xs font-semibold uppercase tracking-wide transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-white
                       ${
                         activeProductId === product.id
-                          ? "bg-gradient-to-br from-[#28a745] to-[#20c997] animate-pulse hover:from-[#34ce57] hover:to-[#28a745]"
+                        ? "bg-gradient-to-br from-[#28a745] to-[#20c997] animate-pulse hover:from-[#34ce57] hover:to-[#28a745]"
                           : "bg-gradient-to-br from-[#4a90e2] to-[#357abd] hover:from-[#5ba0f2] hover:to-[#4a90e2]"
                       }`}
                     title={`Ver detalles de ${product.marca} ${product.sabor} ${product.formato}L`}
@@ -317,7 +318,7 @@ const ProductManagementSystem: React.FC = () => {
     </section>
 
     {/* Details Table */}
-    <section className="p-5 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-x-auto">
+    <section className="p-5 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-x-auto flex-2">
       <h3 className="text-xl font-semibold mb-4 text-center uppercase tracking-wide">
         Detalles del Producto Seleccionado
       </h3>
@@ -342,7 +343,7 @@ const ProductManagementSystem: React.FC = () => {
                 className={`animate-slideInUp border-b border-white/10 hover:bg-white/15 transition-all duration-300 ${
                   index % 2 === 1 ? "bg-white/5" : ""
                 }`}
-              >
+                >
                 <td className="p-3 text-center font-medium">{detail.cod}</td>
                 <td className="p-3 font-medium min-w-[200px]">{detail.descripcion}</td>
                 <td className="p-3 text-center font-medium">{detail.um}</td>
@@ -358,6 +359,7 @@ const ProductManagementSystem: React.FC = () => {
         </table>
       </div>
     </section>
+</div>
   </div>
 </div>
 
