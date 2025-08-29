@@ -1,0 +1,72 @@
+[
+  {
+    "Cod Compania": "AJEPER S.A.",
+    "Cod Sucursal": 65,
+    "Des Sucursal": "AJE CARAL", 
+    "SKU": 422396,
+    "Descripcion SKU": "BIG COLA PET NO RETORNABLE 350 ML 15 MA",
+    "Marca": "BIG",
+    "Presentacion": "PET NO RETORNABLE",
+    "Formato": "350",
+    "Sabor": "COLA",
+    "Des FamiliaSKU": "GASEOSA",
+    "Proceso": "EQUIPOS DE ENVASADO",
+    "Linea": 1
+  },
+  {
+    "Cod Compania": "AJEPER S.A.",
+    "Cod Sucursal": 65,
+    "Des Sucursal": "AJE CARAL",
+    "SKU": 423277,
+    "Descripcion SKU": "BIG UVA PET NO RETORNABLE 350 ML 15 MA",
+    "Marca": "BIG", 
+    "Presentacion": "PET NO RETORNABLE",
+    "Formato": "350",
+    "Sabor": "UVA",
+    "Des FamiliaSKU": "GASEOSA",
+    "Proceso": "EQUIPOS DE ENVASADO",
+    "Linea": 1
+  },
+  {
+    "Cod Compania": "AJEPER S.A.",
+    "Cod Sucursal": 65,
+    "Des Sucursal": "AJE CARAL",
+    "SKU": 423276,
+    "Descripcion SKU": "BIG KOLITA PET NO RETORNABLE 350 ML 15 EXP MA",
+    "Marca": "BIG",
+    "Presentacion": "PET NO RETORNABLE", 
+    "Formato": "350",
+    "Sabor": "KOLITA",
+    "Des FamiliaSKU": "GASEOSA",
+    "Proceso": "EQUIPOS DE ENVASADO",
+    "Linea": 1
+  },
+  {
+    "Cod Compania": "AJEPER S.A.",
+    "Cod Sucursal": 65,
+    "Des Sucursal": "AJE CARAL",
+    "SKU": 499668,
+    "Descripcion SKU": "BIG COLA PET NO RETORNABLE 3030 ML 6",
+    "Marca": "BIG",
+    "Presentacion": "PET NO RETORNABLE",
+    "Formato": "3030",
+    "Sabor": "COLA",
+    "Des FamiliaSKU": "GASEOSA", 
+    "Proceso": "EQUIPOS DE ENVASADO",
+    "Linea": 2
+  },
+  {
+    "Cod Compania": "AJEPER S.A.",
+    "Cod Sucursal": 65,
+    "Des Sucursal": "AJE CARAL",
+    "SKU": 499723,
+    "Descripcion SKU": "BIG COLA PET NO RETORNABLE 1700 ML 6",
+    "Marca": "BIG",
+    "Presentacion": "PET NO RETORNABLE",
+    "Formato": "1700",
+    "Sabor": "COLA",
+    "Des FamiliaSKU": "GASEOSA",
+    "Proceso": "EQUIPOS DE ENVASADO",
+    "Linea": 2
+  }
+]
