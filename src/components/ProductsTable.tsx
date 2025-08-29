@@ -38,7 +38,7 @@ interface SystemMetrics {
 
 const ProductManagementSystem: React.FC = () => {
   const [activeProductId, setActiveProductId] = useState<number | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string>('Sistema inicializado');
+  const [, setStatusMessage] = useState<string>('Sistema inicializado');
   const [currentMetrics, setCurrentMetrics] = useState<SystemMetrics>({
     sku: "599371",
     paqProgramado: "23,600",
