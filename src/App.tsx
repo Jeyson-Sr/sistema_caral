@@ -1,11 +1,11 @@
-import Test1 from './components/test1'
+import ProductsTable from './components/ProductsTable'
 
 
 function App() {
 
   return (
     <>
-      <Test1 />
+      <ProductsTable />
     </>
   )
 }
