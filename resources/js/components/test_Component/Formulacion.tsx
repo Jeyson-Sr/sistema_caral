@@ -20,321 +20,265 @@ interface Almacen {
 
 const Formulacion: React.FC<FormulacionProps> = ({ sku_description, sku_jarabe }) => {
   const [almacen05, setAlmacen05] = useState<Almacen[]>([]);
-  const [currentStep, setCurrentStep] = useState<'envasado' | 'jarabe' | 'complete'>('envasado');
-  
-  const [envasadoFilas, setEnvasadoFilas] = useState<FilaFormulacion[]>([
+  const [filas, setFilas] = useState<FilaFormulacion[]>([
     { id: 1, descripcion: '', articulo: null, cantidad: '' },
   ]);
-  
+
+  const [showEnvasado, setShowEnvasado] = useState(true); // mostramos Envasado primero
+  const [showJarabeForm, setShowJarabeForm] = useState(false);
   const [jarabeFilas, setJarabeFilas] = useState<FilaFormulacion[]>([
     { id: 1, descripcion: '', articulo: null, cantidad: '' },
   ]);
 
-  const [savedData, setSavedData] = useState<{
-    envasado: FilaFormulacion[];
-    jarabe: FilaFormulacion[];
-  }>({ envasado: [], jarabe: [] });
+  const [savedEnvasado, setSavedEnvasado] = useState<FilaFormulacion[] | null>(null);
+  const [savedJarabe, setSavedJarabe] = useState<FilaFormulacion[] | null>(null);
 
-  // Cargar datos del almacén
   useEffect(() => {
     fetch('/almacen/05')
       .then((res) => res.json())
       .then((data: Almacen[]) => setAlmacen05(data))
-      .catch(() => setAlmacen05([]));
+      .catch((err) => {
+        console.error('Error cargando almacen05:', err);
+        setAlmacen05([]);
+      });
   }, []);
 
-  // Utilidades
-  const nextId = (arr: FilaFormulacion[]) => Math.max(0, ...arr.map(r => r.id)) + 1;
+  const nextId = (arr: FilaFormulacion[]) => (arr.length ? Math.max(...arr.map((r) => r.id)) + 1 : 1);
   const isPreforma = (desc: string) => desc.toLowerCase().includes('preforma');
-  const validarNumero = (valor: string) => /^\d*\.?\d{0,7}$/.test(valor) ? valor : valor.slice(0, -1);
 
-  // Listas filtradas
-  const envasesList = almacen05.filter(a => 
-    (a.nombre_linea ?? '').toLowerCase() === 'envases y embalajes' || isPreforma(a.descripcion || '')
+  // listas filtradas con reglas:
+  // Envasado: ENVASES Y EMBALAJES OR cualquier descripcion que contenga 'preforma'
+  const envasesList = almacen05.filter(
+    (a) => (a.nombre_linea ?? '').toLowerCase() === 'envases y embalajes' || isPreforma(a.descripcion || '')
   );
-  
-  const materiaList = almacen05.filter(a => 
-    (a.nombre_linea ?? '').toLowerCase() === 'materia prima e insumos' && !isPreforma(a.descripcion || '')
+  // Jarabe: MATERIA PRIMA E INSUMOS AND NOT preforma
+  const materiaList = almacen05.filter(
+    (a) => (a.nombre_linea ?? '').toLowerCase() === 'materia prima e insumos' && !isPreforma(a.descripcion || '')
   );
 
-  // Manejadores genéricos
-  const updateFila = (
-    filas: FilaFormulacion[], 
-    setFilas: React.Dispatch<React.SetStateAction<FilaFormulacion[]>>,
-    allowedList: Almacen[],
-    id: number, 
-    campo: keyof FilaFormulacion, 
-    valor: string
-  ) => {
-    setFilas(prev => prev.map(fila => {
-      if (fila.id !== id) return fila;
-      
-      if (campo === 'descripcion') {
-        const isBlocked = currentStep === 'jarabe' && isPreforma(valor);
-        const match = isBlocked ? null : allowedList.find(a => 
-          a.descripcion.toLowerCase() === valor.toLowerCase()
-        );
-        return { ...fila, descripcion: valor, articulo: match?.id || null };
-      }
-      
-      if (campo === 'cantidad') {
-        return { ...fila, cantidad: validarNumero(valor) };
-      }
-      
-      return fila;
-    }));
+  const agregarFila = () =>
+    setFilas((prev) => [...prev, { id: nextId(prev), descripcion: '', articulo: null, cantidad: '' }]);
+  const agregarFilaJarabe = () =>
+    setJarabeFilas((prev) => [...prev, { id: nextId(prev), descripcion: '', articulo: null, cantidad: '' }]);
+
+  const validarNumero = (valor: string) => {
+    const regex = /^\d*\.?\d{0,7}$/;
+    return regex.test(valor) || valor === '' ? valor : valor.slice(0, -1);
   };
 
-  const agregarFila = (filas: FilaFormulacion[], setFilas: React.Dispatch<React.SetStateAction<FilaFormulacion[]>>) => {
-    setFilas(prev => [...prev, { id: nextId(prev), descripcion: '', articulo: null, cantidad: '' }]);
+  // cambios en Envasado: solo se buscan coincidencias en envasesList
+  const handleChange = (id: number, campo: keyof FilaFormulacion, valor: string) => {
+    setFilas((prev) =>
+      prev.map((fila) => {
+        if (fila.id !== id) return fila;
+        if (campo === 'descripcion') {
+          const match = envasesList.find((a) => a.descripcion.toLowerCase() === valor.toLowerCase());
+          return { ...fila, descripcion: valor, articulo: match ? match.id : null };
+        }
+        if (campo === 'cantidad') return { ...fila, cantidad: valor };
+        return fila;
+      })
+    );
   };
 
-  const limpiarFilas = (setFilas: React.Dispatch<React.SetStateAction<FilaFormulacion[]>>) => {
-    setFilas([{ id: 1, descripcion: '', articulo: null, cantidad: '' }]);
+  // cambios en Jarabe: busca match en materiaList; bloquea si incluye 'preforma'
+  const handleChangeJarabe = (id: number, campo: keyof FilaFormulacion, valor: string) => {
+    setJarabeFilas((prev) =>
+      prev.map((fila) => {
+        if (fila.id !== id) return fila;
+        if (campo === 'descripcion') {
+          if (isPreforma(valor)) {
+            // bloqueado: preforma no permitido en jarabe
+            return { ...fila, descripcion: valor, articulo: null };
+          }
+          const match = materiaList.find((a) => a.descripcion.toLowerCase() === valor.toLowerCase());
+          return { ...fila, descripcion: valor, articulo: match ? match.id : null };
+        }
+        if (campo === 'cantidad') return { ...fila, cantidad: valor };
+        return fila;
+      })
+    );
   };
 
-  const validarFilas = (filas: FilaFormulacion[]) => {
-    return filas.every(f => f.descripcion.trim() && f.cantidad.trim() && f.articulo !== null);
+  const validarFilas = (rows: FilaFormulacion[]) => {
+    if (!rows.length) return false;
+    for (const r of rows) if (!r.descripcion.trim() || !r.cantidad.trim() || r.articulo === null) return false;
+    return true;
   };
 
-  // Manejadores de envío
-  const handleEnvasadoSubmit = (e: React.FormEvent) => {
+  // Guardar Envasado: guarda y oculta Envasado; si sku_jarabe === 'si' abre Jarabe; si 'no' imprime todo
+  const handleMainSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validarFilas(envasadoFilas)) {
-      alert('Revisa Envasado: todas las filas necesitan descripción válida, cantidad y artículo válido.');
+    if (!validarFilas(filas)) {
+      window.alert('Revisa Envasado: todas las filas necesitan descripción válida, cantidad y coincidir con artículo permitido.');
       return;
     }
 
-    setSavedData(prev => ({ ...prev, envasado: [...envasadoFilas] }));
+    setSavedEnvasado(filas.map(f => ({ ...f })));
+    // cerrar envasado
+    setShowEnvasado(false);
 
     if (sku_jarabe.toLowerCase() === 'si') {
-      setCurrentStep('jarabe');
+      // abrir jarabe
+      setShowJarabeForm(true);
+      setJarabeFilas([{ id: 1, descripcion: '', articulo: null, cantidad: '' }]);
+      // scroll
       setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 150);
-    } else {
-      console.log('FORMULACIÓN FINAL - ENVASADO:', envasadoFilas.map(f => ({
-        descripcion: f.descripcion, articulo: f.articulo, cantidad: f.cantidad
-      })));
-      alert('Fórmula de Envasado guardada. Revisa consola.');
-      setCurrentStep('complete');
-    }
-  };
-
-  const handleJarabeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validarFilas(jarabeFilas)) {
-      alert('Revisa Jarabe: todas las filas necesitan descripción válida, cantidad y artículo válido.');
       return;
     }
 
-    setSavedData(prev => ({ ...prev, jarabe: [...jarabeFilas] }));
-
-    console.log('FORMULACIÓN FINAL - ENVASADO:', savedData.envasado.map(f => ({
-      descripcion: f.descripcion, articulo: f.articulo, cantidad: f.cantidad
-    })));
-    console.log('FORMULACIÓN FINAL - JARABE:', jarabeFilas.map(f => ({
-      descripcion: f.descripcion, articulo: f.articulo, cantidad: f.cantidad
-    })));
-
-    alert('Formulaciones guardadas. Revisa consola.');
-    setCurrentStep('complete');
+    // no aplica jarabe: imprimir en consola solo envasado
+    console.log('FORMULACIÓN FINAL - ENVASADO:', filas.map(f => ({ descripcion: f.descripcion, articulo: f.articulo, cantidad: f.cantidad })));
+    window.alert('Fórmula de Envasado guardada y final (sin Jarabe). Revisa consola.');
   };
 
-  // Componente de formulario reutilizable
-  const FormularioSection = ({ 
-    title, 
-    subtitle, 
-    filas, 
-    setFilas, 
-    allowedList, 
-    datalistId, 
-    onSubmit, 
-    submitText, 
-    showBack = false 
-  }: {
-    title: string;
-    subtitle: string;
-    filas: FilaFormulacion[];
-    setFilas: React.Dispatch<React.SetStateAction<FilaFormulacion[]>>;
-    allowedList: Almacen[];
-    datalistId: string;
-    onSubmit: (e: React.FormEvent) => void;
-    submitText: string;
-    showBack?: boolean;
-  }) => (
-    <div className="bg-slate-800/50 backdrop-blur rounded-xl p-8 shadow-2xl border border-slate-700/50">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
-          <p className="text-slate-400 text-sm">{subtitle}</p>
-        </div>
-        <div className="text-right">
-          <span className="px-4 py-2 bg-slate-700/50 rounded-lg text-slate-300 text-sm font-medium">
-            {filas.length} {filas.length === 1 ? 'artículo' : 'artículos'}
-          </span>
-        </div>
-      </div>
+  // Guardar Jarabe: valida y luego imprime todo (envasado + jarabe)
+  const handleJarabeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validarFilas(jarabeFilas)) {
+      window.alert('Revisa Jarabe: todas las filas necesitan descripción válida, cantidad y coincidir con artículo permitido (sin preforma).');
+      return;
+    }
 
-      <form onSubmit={onSubmit} className="space-y-6">
-        <div className="space-y-4">
-          {filas.map((fila) => (
-            <div key={fila.id} className="flex gap-4 items-center p-4 bg-slate-900/50 rounded-lg border border-slate-600/30">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  list={datalistId}
-                  className="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-600 
-                           focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                           placeholder:text-slate-500"
-                  value={fila.descripcion}
-                  onChange={(e) => updateFila(filas, setFilas, allowedList, fila.id, 'descripcion', e.target.value)}
-                  placeholder={title === 'Fórmula de Envasado' ? 'Envase o embalaje...' : 'Materia prima...'}
-                  required
-                />
-                <datalist id={datalistId}>
-                  {allowedList.map(it => <option key={it.id} value={it.descripcion} />)}
-                </datalist>
-                {currentStep === 'jarabe' && isPreforma(fila.descripcion) && (
-                  <div className="text-xs text-amber-400 mt-2 px-2 py-1 bg-amber-400/10 rounded">
-                    ⚠️ Artículo con "preforma" bloqueado en Jarabe
-                  </div>
-                )}
-              </div>
+    setSavedJarabe(jarabeFilas.map(f => ({ ...f })));
 
-              <div className="w-40">
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  className="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-600 
-                           focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                           text-right font-mono placeholder:text-slate-500"
-                  value={fila.cantidad}
-                  onChange={(e) => updateFila(filas, setFilas, allowedList, fila.id, 'cantidad', e.target.value)}
-                  placeholder="0.0000000"
-                  required
-                />
-              </div>
+    const resultadoEnvasado = (savedEnvasado ?? filas).map(f => ({ descripcion: f.descripcion, articulo: f.articulo, cantidad: f.cantidad }));
+    const resultadoJarabe = jarabeFilas.map(f => ({ descripcion: f.descripcion, articulo: f.articulo, cantidad: f.cantidad }));
 
-              <div className="w-28 text-right">
-                {fila.articulo !== null ? (
-                  <span className="px-3 py-2 bg-emerald-500/20 text-emerald-300 rounded-lg text-sm font-medium">
-                    #{fila.articulo}
-                  </span>
-                ) : (
-                  <span className="px-3 py-2 bg-amber-500/20 text-amber-300 rounded-lg text-sm">
-                    Sin ID
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+    console.log('FORMULACIÓN FINAL - ENVASADO:', resultadoEnvasado);
+    console.log('FORMULACIÓN FINAL - JARABE:', resultadoJarabe);
 
-        <div className="flex items-center justify-between pt-6 border-t border-slate-700/50">
-          <div className="flex gap-3">
-            <button 
-              type="button" 
-              onClick={() => agregarFila(filas, setFilas)} 
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg 
-                         transition-all hover:shadow-lg hover:shadow-blue-500/25 font-medium"
-            >
-              ✚ Agregar Fila
-            </button>
-            <button 
-              type="button" 
-              onClick={() => limpiarFilas(setFilas)} 
-              className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-3 rounded-lg 
-                         transition-all hover:shadow-lg font-medium"
-            >
-              🗑️ Limpiar
-            </button>
-          </div>
-
-          <div className="flex gap-3">
-            {showBack && (
-              <button 
-                type="button" 
-                onClick={() => setCurrentStep('envasado')} 
-                className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-3 rounded-lg 
-                           transition-all hover:shadow-lg font-medium"
-              >
-                ← Volver
-              </button>
-            )}
-            <button 
-              type="submit" 
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 
-                         text-white px-8 py-3 rounded-lg transition-all hover:shadow-lg 
-                         hover:shadow-green-500/25 font-semibold"
-            >
-              {submitText}
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
-  );
+    window.alert('Formulaciones guardadas. Revisa consola.');
+    setShowJarabeForm(false);
+    // opcional: resetear formulario o permitir editar antes de enviar al backend
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="max-w-6xl mx-auto p-8 space-y-8">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-8 shadow-2xl border border-slate-600/50">
-          <h1 className="text-3xl font-bold text-white mb-3">{sku_description}</h1>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${currentStep === 'envasado' ? 'bg-blue-500' : 'bg-green-500'}`}></div>
-              <span className="text-slate-300">Envasado</span>
-            </div>
-            {sku_jarabe.toLowerCase() === 'si' && (
-              <>
-                <div className="w-8 h-px bg-slate-600"></div>
-                <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${currentStep === 'jarabe' ? 'bg-blue-500' : currentStep === 'complete' ? 'bg-green-500' : 'bg-slate-600'}`}></div>
-                  <span className="text-slate-300">Jarabe</span>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Formularios */}
-        {currentStep === 'envasado' && (
-          <FormularioSection
-            title="Fórmula de Envasado"
-            subtitle="Envases y embalajes + preformas"
-            filas={envasadoFilas}
-            setFilas={setEnvasadoFilas}
-            allowedList={envasesList}
-            datalistId="almacenes-envases"
-            onSubmit={handleEnvasadoSubmit}
-            submitText={sku_jarabe.toLowerCase() === 'si' ? 'Continuar a Jarabe →' : 'Finalizar Formulación'}
-          />
-        )}
-
-        {currentStep === 'jarabe' && (
-          <FormularioSection
-            title="Fórmula de Jarabe"
-            subtitle="Materia prima e insumos (sin preformas)"
-            filas={jarabeFilas}
-            setFilas={setJarabeFilas}
-            allowedList={materiaList}
-            datalistId="almacenes-materia"
-            onSubmit={handleJarabeSubmit}
-            submitText="✓ Finalizar Formulación"
-            showBack={true}
-          />
-        )}
-
-        {currentStep === 'complete' && (
-          <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-8 text-center">
-            <div className="text-green-400 text-6xl mb-4">✓</div>
-            <h2 className="text-2xl font-bold text-white mb-2">Formulación Completada</h2>
-            <p className="text-slate-300">Los datos han sido guardados y están disponibles en la consola.</p>
-          </div>
-        )}
+    <div className="max-w-5xl mx-auto p-6 space-y-6">
+      <div className="bg-slate-900 text-white rounded-lg p-4">
+        <h1 className="text-xl font-bold">{sku_description}</h1>
+        <p className="text-sm text-slate-400">Proceso: primero Envasado → luego Jarabe (si aplica).</p>
       </div>
+
+      {/* ENVASADO (se muestra inicialmente) */}
+      {showEnvasado && (
+        <div className="bg-white/5 rounded-lg p-4 shadow-inner border border-slate-700">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-lg font-semibold">Fórmula de Envasado</h2>
+            <span className="text-sm text-slate-300">ENVASES Y EMBALAJES + preforma</span>
+          </div>
+
+          <form onSubmit={handleMainSubmit}>
+            <div className="space-y-3">
+              {filas.map((fila) => (
+                <div key={fila.id} className="flex gap-2 items-center">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      list="almacenes-envases"
+                      className="w-full p-2 rounded bg-slate-800 text-white border border-slate-600"
+                      value={fila.descripcion}
+                      onChange={(e) => handleChange(fila.id, 'descripcion', e.target.value)}
+                      placeholder="Artículo (ENVASES o que contenga 'preforma')"
+                      required
+                    />
+                    <datalist id="almacenes-envases">
+                      {envasesList.map(it => <option key={it.id} value={it.descripcion} />)}
+                    </datalist>
+                  </div>
+
+                  <div className="w-36">
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      className="w-full p-2 rounded bg-slate-800 text-white border border-slate-600 text-right"
+                      value={fila.cantidad}
+                      onChange={(e) => handleChange(fila.id, 'cantidad', validarNumero(e.target.value))}
+                      placeholder="0.0000000"
+                      required
+                    />
+                  </div>
+
+                  <div className="w-24 text-sm text-slate-400 text-right">
+                    {fila.articulo !== null ? <span className="px-2 py-1 bg-emerald-700/20 rounded">id:{fila.articulo}</span> : <span className="text-amber-400">sin id</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between mt-4">
+              <div className="flex gap-2">
+                <button type="button" onClick={agregarFila} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">+ Fila</button>
+                <button type="button" onClick={() => setFilas([{ id: 1, descripcion: '', articulo: null, cantidad: '' }])} className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded">Limpiar</button>
+              </div>
+
+              <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Guardar Envasado</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* JARABE: se muestra solo si aplica y después de guardar Envasado */}
+      {showJarabeForm && sku_jarabe.toLowerCase() === 'si' && (
+        <div className="bg-white/5 rounded-lg p-4 shadow-inner border border-slate-700">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-lg font-semibold">Fórmula de Jarabe</h2>
+            <span className="text-sm text-slate-300">MATERIA PRIMA E INSUMOS (sin preforma)</span>
+          </div>
+
+          <form onSubmit={handleJarabeSubmit}>
+            <div className="space-y-3">
+              {jarabeFilas.map((fila) => (
+                <div key={fila.id} className="flex gap-2 items-center">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      list="almacenes-materia"
+                      className="w-full p-2 rounded bg-slate-800 text-white border border-slate-600"
+                      value={fila.descripcion}
+                      onChange={(e) => handleChangeJarabe(fila.id, 'descripcion', e.target.value)}
+                      placeholder="Artículo (MATERIA PRIMA, NO preforma)"
+                      required
+                    />
+                    <datalist id="almacenes-materia">
+                      {materiaList.map(it => <option key={it.id} value={it.descripcion} />)}
+                    </datalist>
+                    {isPreforma(fila.descripcion) && <div className="text-xs text-amber-300 mt-1">Artículo con "preforma" bloqueado en Jarabe.</div>}
+                  </div>
+
+                  <div className="w-36">
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      className="w-full p-2 rounded bg-slate-800 text-white border border-slate-600 text-right"
+                      value={fila.cantidad}
+                      onChange={(e) => handleChangeJarabe(fila.id, 'cantidad', validarNumero(e.target.value))}
+                      placeholder="0.0000000"
+                      required
+                    />
+                  </div>
+
+                  <div className="w-24 text-sm text-slate-400 text-right">
+                    {fila.articulo !== null ? <span className="px-2 py-1 bg-emerald-700/20 rounded">id:{fila.articulo}</span> : <span className="text-amber-400">sin id</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between mt-4">
+              <div className="flex gap-2">
+                <button type="button" onClick={agregarFilaJarabe} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">+ Fila</button>
+                <button type="button" onClick={() => setJarabeFilas([{ id: 1, descripcion: '', articulo: null, cantidad: '' }])} className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded">Limpiar</button>
+              </div>
+
+              <div className="flex gap-2">
+                <button type="button" onClick={() => { setShowJarabeForm(false); setShowEnvasado(true); }} className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded">Volver Envasado</button>
+                <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">Guardar Jarabe y Finalizar</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

@@ -20,12 +20,12 @@ type FormData = {
   cartonNivel: number | '';
 };
 
-const MARCAS = [
+const MARCAS = [ /* ...tu array de marcas... */ 
   'BIG','BIO ALOE','CIELO','CIELO ALCALINA','CIFRUT','CRECE BIEN',
   'DILYTE','FREE TEA','KR','ORO','PULP','SPORADE','VIDA','VOLT'
 ];
 
-const SABORES = [
+const SABORES = [ /* ...tu array de sabores... */
   'COLA','UVA','KOLITA','AGUA','LIMON','MANZANA','MARACUYA','PERA',
   'FRUIT PUNCH','CITRUS PUNCH','GREEN PUNCH','MANGO','BLUEBERRY','FRUTOS ROJOS',
   'NEGRO DURAZNO','NEGRO LIMON','PIÑA','NARANJA','LIMA LIMON','FRESA','GUARANA',
@@ -58,7 +58,6 @@ const CrearEnvase: React.FC = () => {
   });
 
   const [mostrarFormulacion, setMostrarFormulacion] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -111,7 +110,6 @@ const CrearEnvase: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     const payload = buildPayload();
     console.log('Payload listo para enviar:', payload);
@@ -140,6 +138,7 @@ const CrearEnvase: React.FC = () => {
         }
       }
 
+      // Si llegamos aquí, la respuesta fue OK. Cambiamos la vista a Formulacion.
       if (contentType.includes('application/json')) {
         const data = await res.json();
         console.log('Guardado con éxito:', data);
@@ -148,12 +147,12 @@ const CrearEnvase: React.FC = () => {
         console.log('Respuesta no-JSON del servidor (posible Inertia/HTML):', text);
       }
 
+      // --- CAMBIO DE VISTA ---
       setMostrarFormulacion(true);
 
     } catch (err) {
       console.error('Error al enviar:', err);
-    } finally {
-      setLoading(false);
+      // no cambiamos vista si hay error
     }
   };
 
@@ -165,436 +164,280 @@ const CrearEnvase: React.FC = () => {
     />;
   }
 
-  // Generar preview del producto
-  const generatePreview = () => {
-    const payload = buildPayload();
-    return payload.sku_descripcion || 'Vista previa del producto';
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="max-w-7xl mx-auto p-8 space-y-8">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-8 shadow-2xl border border-slate-600/50">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">🏭 Crear Nuevo Envase</h1>
-              <p className="text-slate-300">Define las especificaciones del producto y continúa a la formulación</p>
-            </div>
-            
-            <div className="text-right">
-              <div className="px-4 py-2 bg-slate-700/50 rounded-lg">
-                <span className="text-slate-300 text-sm">Vista previa:</span>
-                <div className="text-white font-semibold mt-1">{generatePreview()}</div>
-              </div>
-            </div>
+    <div className="p-4 bg-black rounded-lg shadow">
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-5 gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium mb-1 text-white">SKU (envasado)</label>
+            <input
+              type="number"
+              name="sku"
+              value={formData.sku as any}
+              onChange={handleChange}
+              placeholder="Ingrese SKU"
+              className="w-full border rounded-md p-2 bg-black text-white"
+            />
           </div>
 
-          {/* Indicadores de progreso */}
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className="text-slate-300">Configuración del Producto</span>
-            </div>
-            <div className="w-8 h-px bg-slate-600"></div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-slate-600 rounded-full"></div>
-              <span className="text-slate-500">Formulación</span>
-            </div>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-white">Marca</label>
+            <input
+              type="text"
+              name="marca"
+              value={formData.marca}
+              onChange={handleChange}
+              placeholder="Ingrese marca"
+              className="w-full border rounded-md p-2 bg-black text-white"
+              list="marcasList"
+            />
+            <datalist id="marcasList">
+              {MARCAS.map((m, i) => <option key={i} value={m} />)}
+            </datalist>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 text-white">Sabor</label>
+            <input
+              type="text"
+              name="sabor"
+              value={formData.sabor}
+              onChange={handleChange}
+              placeholder="Ingrese sabor"
+              className="w-full border rounded-md p-2 bg-black text-white"
+              list="saboresList"
+            />
+            <datalist id="saboresList">
+              {SABORES.map((s, i) => <option key={i} value={s} />)}
+            </datalist>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 text-white">Línea</label>
+            <select
+              name="linea"
+              value={formData.linea as any}
+              onChange={handleChange}
+              className="w-full border rounded-md p-2 bg-black text-white"
+            >
+              <option value="">---</option>
+              {Array.from({ length: 14 }).map((_, i) => (
+                <option key={i} value={i + 1}>
+                  {`L${String(i + 1).padStart(2, '0')}`}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 text-white">Jarabe</label>
+            <select
+              name="jarabe"
+              value={formData.jarabe}
+              onChange={handleChange}
+              className="w-full border rounded-md p-2 bg-black text-white"
+            >
+              <option value="">---</option>
+              <option value="no">No</option>
+              <option value="si">Si</option>
+            </select>
           </div>
         </div>
 
-        {/* Formulario Principal */}
-        <div className="bg-slate-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl border border-slate-700/50">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            
-            {/* Sección 1: Información Básica */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">1</span>
-                </div>
-                <h2 className="text-xl font-bold text-white">Información Básica del Producto</h2>
+        {showJarabeFields ? (
+          <>
+            <div className="grid grid-cols-5 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Formato</label>
+                <input
+                  type="number"
+                  name="formato"
+                  step="0.001"
+                  min="0"
+                  value={formData.formato as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-300">
-                    SKU (Envasado) <span className="text-amber-400">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    name="sku"
-                    value={formData.sku as any}
-                    onChange={handleChange}
-                    placeholder="Ej: 12345"
-                    className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                             focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                             placeholder:text-slate-400 font-mono"
-                    required
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Litros Batch</label>
+                <input
+                  type="number"
+                  name="litrosBatch"
+                  value={formData.litrosBatch as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-300">
-                    Marca <span className="text-amber-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="marca"
-                    value={formData.marca}
-                    onChange={handleChange}
-                    placeholder="Seleccione marca..."
-                    className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                             focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                             placeholder:text-slate-400 uppercase"
-                    list="marcasList"
-                    required
-                  />
-                  <datalist id="marcasList">
-                    {MARCAS.map((m, i) => <option key={i} value={m} />)}
-                  </datalist>
-                </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Bebida Final</label>
+                <input
+                  type="number"
+                  name="bebidaFinal"
+                  value={formData.bebidaFinal as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-300">
-                    Sabor <span className="text-amber-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="sabor"
-                    value={formData.sabor}
-                    onChange={handleChange}
-                    placeholder="Seleccione sabor..."
-                    className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                             focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                             placeholder:text-slate-400 uppercase"
-                    list="saboresList"
-                    required
-                  />
-                  <datalist id="saboresList">
-                    {SABORES.map((s, i) => <option key={i} value={s} />)}
-                  </datalist>
-                </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Factor Azúcar</label>
+                <input
+                  type="number"
+                  name="factorAzucar"
+                  step="0.0000001"
+                  min="0"
+                  value={formData.factorAzucar as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-300">
-                    Línea de Producción <span className="text-amber-400">*</span>
-                  </label>
-                  <select
-                    name="linea"
-                    value={formData.linea as any}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                             focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                    required
-                  >
-                    <option value="">Seleccionar...</option>
-                    {Array.from({ length: 14 }).map((_, i) => (
-                      <option key={i} value={i + 1}>
-                        {`Línea ${String(i + 1).padStart(2, '0')}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-300">
-                    ¿Requiere Jarabe? <span className="text-amber-400">*</span>
-                  </label>
-                  <select
-                    name="jarabe"
-                    value={formData.jarabe}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                             focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                    required
-                  >
-                    <option value="">Seleccionar...</option>
-                    <option value="no">❌ No requiere</option>
-                    <option value="si">✅ Sí requiere</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">EF Velocidad</label>
+                <input
+                  type="number"
+                  name="efVelocidad"
+                  value={formData.efVelocidad as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
               </div>
             </div>
 
-            {/* Sección 2: Especificaciones Técnicas */}
-            <div className="space-y-6 pt-6 border-t border-slate-700/50">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">2</span>
-                </div>
-                <h2 className="text-xl font-bold text-white">Especificaciones Técnicas</h2>
-                <div className="flex-1"></div>
-                {formData.jarabe === 'si' && (
-                  <div className="px-3 py-1 bg-green-500/20 text-green-300 rounded-lg text-sm font-medium">
-                    🧪 Modo Jarabe Activado
-                  </div>
-                )}
+            <div className="grid grid-cols-4 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Velocidad Bot</label>
+                <input
+                  type="number"
+                  name="velocidadBot"
+                  value={formData.velocidadBot as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
               </div>
 
-              {showJarabeFields ? (
-                // Layout para productos con jarabe
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Formato (ML)</label>
-                      <input
-                        type="number"
-                        name="formato"
-                        step="0.001"
-                        min="0"
-                        value={formData.formato as any}
-                        onChange={handleChange}
-                        placeholder="250.000"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Litros Batch</label>
-                      <input
-                        type="number"
-                        name="litrosBatch"
-                        value={formData.litrosBatch as any}
-                        onChange={handleChange}
-                        placeholder="1000"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Bebida Final</label>
-                      <input
-                        type="number"
-                        name="bebidaFinal"
-                        value={formData.bebidaFinal as any}
-                        onChange={handleChange}
-                        placeholder="950"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Factor Azúcar</label>
-                      <input
-                        type="number"
-                        name="factorAzucar"
-                        step="0.0000001"
-                        min="0"
-                        value={formData.factorAzucar as any}
-                        onChange={handleChange}
-                        placeholder="0.1234567"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">EF Velocidad</label>
-                      <input
-                        type="number"
-                        name="efVelocidad"
-                        value={formData.efVelocidad as any}
-                        onChange={handleChange}
-                        placeholder="85"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Velocidad Bot</label>
-                      <input
-                        type="number"
-                        name="velocidadBot"
-                        value={formData.velocidadBot as any}
-                        onChange={handleChange}
-                        placeholder="120"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Unidad Paquete</label>
-                      <input
-                        type="number"
-                        name="unidadPaquete"
-                        value={formData.unidadPaquete as any}
-                        onChange={handleChange}
-                        placeholder="24"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Paquetes por Nivel</label>
-                      <input
-                        type="number"
-                        name="paquetesNivel"
-                        value={formData.paquetesNivel as any}
-                        onChange={handleChange}
-                        placeholder="8"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Cartón por Nivel</label>
-                      <input
-                        type="number"
-                        name="cartonNivel"
-                        value={formData.cartonNivel as any}
-                        onChange={handleChange}
-                        placeholder="4"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                // Layout simplificado para productos sin jarabe
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Formato (ML)</label>
-                      <input
-                        type="number"
-                        name="formato"
-                        step="0.001"
-                        min="0"
-                        value={formData.formato as any}
-                        onChange={handleChange}
-                        placeholder="250.000"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">EF Velocidad</label>
-                      <input
-                        type="number"
-                        name="efVelocidad"
-                        value={formData.efVelocidad as any}
-                        onChange={handleChange}
-                        placeholder="85"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Velocidad Bot</label>
-                      <input
-                        type="number"
-                        name="velocidadBot"
-                        value={formData.velocidadBot as any}
-                        onChange={handleChange}
-                        placeholder="120"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Unidad Paquete</label>
-                      <input
-                        type="number"
-                        name="unidadPaquete"
-                        value={formData.unidadPaquete as any}
-                        onChange={handleChange}
-                        placeholder="24"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Paquetes por Nivel</label>
-                      <input
-                        type="number"
-                        name="paquetesNivel"
-                        value={formData.paquetesNivel as any}
-                        onChange={handleChange}
-                        placeholder="8"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-300">Cartón por Nivel</label>
-                      <input
-                        type="number"
-                        name="cartonNivel"
-                        value={formData.cartonNivel as any}
-                        onChange={handleChange}
-                        placeholder="4"
-                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 text-white border border-slate-600 
-                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all
-                                 placeholder:text-slate-400 font-mono text-right"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Botón de envío */}
-            <div className="flex justify-between items-center pt-8 border-t border-slate-700/50">
-              <div className="text-slate-400">
-                <span className="text-amber-400">*</span> Campos requeridos
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Unidad Paquete</label>
+                <input
+                  type="number"
+                  name="unidadPaquete"
+                  value={formData.unidadPaquete as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
               </div>
-              
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 
-                           text-white font-bold rounded-lg transition-all hover:shadow-2xl hover:shadow-blue-500/25 
-                           disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <span>Guardar y Continuar</span>
-                    <span className="text-lg">→</span>
-                  </>
-                )}
-              </button>
+
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Paquetes Nivel</label>
+                <input
+                  type="number"
+                  name="paquetesNivel"
+                  value={formData.paquetesNivel as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Cartón Nivel</label>
+                <input
+                  type="number"
+                  name="cartonNivel"
+                  value={formData.cartonNivel as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
+              </div>
             </div>
-          </form>
+          </>
+        ) : (
+          <>
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Formato</label>
+                <input
+                  type="number"
+                  name="formato"
+                  step="0.001"
+                  min="0"
+                  value={formData.formato as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">EF Velocidad</label>
+                <input
+                  type="number"
+                  name="efVelocidad"
+                  value={formData.efVelocidad as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Velocidad Bot</label>
+                <input
+                  type="number"
+                  name="velocidadBot"
+                  value={formData.velocidadBot as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Unidad Paquete</label>
+                <input
+                  type="number"
+                  name="unidadPaquete"
+                  value={formData.unidadPaquete as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Paquetes Nivel</label>
+                <input
+                  type="number"
+                  name="paquetesNivel"
+                  value={formData.paquetesNivel as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white">Cartón Nivel</label>
+                <input
+                  type="number"
+                  name="cartonNivel"
+                  value={formData.cartonNivel as any}
+                  onChange={handleChange}
+                  className="w-full border rounded-md p-2 bg-black text-white"
+                />
+              </div>
+            </div>
+          </>
+        )}
+
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Enviar
+          </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };
