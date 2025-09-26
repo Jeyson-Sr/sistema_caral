@@ -16,8 +16,8 @@ export default function AuthSimpleLayout({ children, title, description }: Props
                 <div className="flex flex-col gap-8">
                     <div className="flex flex-col items-center gap-4">
                         <Link href={home()} className="flex flex-col items-center gap-2 font-medium">
-                            <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md">
-                                <img src="/img/LOGO-AJE.png" alt="AJE Logo" className="size-9" />
+                            <div className="mb-1 flex h-9 w-30   items-center justify-center rounded-md">
+                                <img src="/img/LOGO-CARAL.png" alt="AJE / CARAL Logo"  />
                             </div>
                             <span className="sr-only">{title}</span>
                         </Link>

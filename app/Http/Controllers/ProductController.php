@@ -32,7 +32,8 @@ class ProductController extends Controller
         $validated = $request->validate([
             'linea'           => 'required|integer',
             'sku_envasado'    => 'required|integer',
-            'jarabe'          => 'nullable|in:si,no', // lo vamos a mapear a sku_jarabe
+            'sku_jarabe'      => 'nullable|integer',
+            // 'jarabe'          => 'nullable|in:si,no', // lo vamos a mapear a sku_jarabe
             'formato'         => 'required|numeric|between:0,9999.999',
             'marca'           => 'required|string|max:50',
             'sabor'           => 'required|string|max:100',
@@ -47,15 +48,15 @@ class ProductController extends Controller
         ]);
 
         // Mapear jarabe a sku_jarabe
-        $validated['sku_jarabe'] = isset($validated['jarabe'])
-            ? ($validated['jarabe'] === 'si' ? 1 : 0)
-            : null;
+        // $validated['sku_jarabe'] = isset($validated['jarabe'])
+        //     ? ($validated['jarabe'] === 'si' ? 1 : 0)
+        //     : null;
 
         // Generar sku_descripcion en base a marca + sabor + formato + unidad
         $validated['sku_descripcion'] = strtoupper($validated['marca'] . ' ' . $validated['sabor'] . ' ' . number_format($validated['formato'], 3, '.', '') . 'ML x' . $validated['unidad_paquete']);
 
         // Eliminar campo extra que no existe en la tabla
-        unset($validated['jarabe']);
+        // unset($validated['jarabe']);
 
         try {
             $producto = Producto::create($validated);

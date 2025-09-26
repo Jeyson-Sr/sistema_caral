@@ -13,6 +13,8 @@ input[type=number] {
 }
 
 
+
+
 @plugin 'tailwindcss-animate';
 
 @source '../views';

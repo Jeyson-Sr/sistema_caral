@@ -1,31 +1,15 @@
+// resources/js/features/createProduct/components/CrearEnvase.tsx
 import React, { useState } from 'react';
 import Formulacion from './Formulacion';
+import useCreateProduct from '../hooks/useCreateProduct';
+import type { ProductPayload } from '../types';
 
-type JarabeOption = 'si' | 'no' | '';
-
-type FormData = {
-  sku: number | '';
-  marca: string;
-  sabor: string;
-  linea: number | '';
-  jarabe: JarabeOption;
-  formato: number | '';
-  litrosBatch: number | '';
-  bebidaFinal: number | '';
-  factorAzucar: number | '';
-  efVelocidad: number | '';
-  velocidadBot: number | '';
-  unidadPaquete: number | '';
-  paquetesNivel: number | '';
-  cartonNivel: number | '';
-};
-
-const MARCAS = [ /* ...tu array de marcas... */ 
+const MARCAS = [
   'BIG','BIO ALOE','CIELO','CIELO ALCALINA','CIFRUT','CRECE BIEN',
   'DILYTE','FREE TEA','KR','ORO','PULP','SPORADE','VIDA','VOLT'
 ];
 
-const SABORES = [ /* ...tu array de sabores... */
+const SABORES = [
   'COLA','UVA','KOLITA','AGUA','LIMON','MANZANA','MARACUYA','PERA',
   'FRUIT PUNCH','CITRUS PUNCH','GREEN PUNCH','MANGO','BLUEBERRY','FRUTOS ROJOS',
   'NEGRO DURAZNO','NEGRO LIMON','PIÑA','NARANJA','LIMA LIMON','FRESA','GUARANA',
@@ -39,6 +23,26 @@ const NUMBER_FIELDS = new Set([
   'efVelocidad','velocidadBot','unidadPaquete','paquetesNivel','cartonNivel'
 ]);
 
+type JarabeOption = 'si' | 'no' | '';
+
+type FormData = {
+  sku: number | '';
+  marca: string;
+  sabor: string;
+  linea: number | '';
+  jarabe: JarabeOption;
+  sku_jarabe: number | '';
+  formato: number | '';
+  litrosBatch: number | '';
+  bebidaFinal: number | '';
+  factorAzucar: number | '';
+  efVelocidad: number | '';
+  velocidadBot: number | '';
+  unidadPaquete: number | '';
+  paquetesNivel: number | '';
+  cartonNivel: number | '';
+};
+
 const CrearEnvase: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     sku: '',
@@ -46,6 +50,7 @@ const CrearEnvase: React.FC = () => {
     sabor: '',
     linea: '',
     jarabe: '',
+    sku_jarabe: '',
     formato: '',
     litrosBatch: '',
     bebidaFinal: '',
@@ -58,6 +63,7 @@ const CrearEnvase: React.FC = () => {
   });
 
   const [mostrarFormulacion, setMostrarFormulacion] = useState(false);
+  const { loading, handleCreateProduct } = useCreateProduct();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -76,24 +82,22 @@ const CrearEnvase: React.FC = () => {
 
   const showJarabeFields = formData.jarabe === 'si';
 
-  const buildPayload = () => {
+  const buildPayload = (): ProductPayload & { sku_descripcion?: string | null } => {
     const sku_envasado = formData.sku === '' ? null : Number(formData.sku);
-    const sku_jarabe = formData.jarabe === ''
-      ? null
-      : (formData.jarabe === 'si' ? 1 : 0);
-
+    const sku_jarabe = formData.sku_jarabe === '' ? null : Number(formData.sku_jarabe);
+    const jarabe = formData.jarabe === '' ? null : (formData.jarabe === 'si' ? 1 : 0);
     const marca = formData.marca?.trim() || '';
     const sabor = formData.sabor?.trim() || '';
     const formatoStr = formData.formato === '' ? '' : Number(formData.formato).toFixed(3);
     const unidadPaqueteStr = formData.unidadPaquete === '' ? '' : String(formData.unidadPaquete);
-
     const sku_descripcion = `${marca} ${sabor} ${formatoStr}${formatoStr ? 'ML' : ''} ${unidadPaqueteStr ? 'x' + unidadPaqueteStr : ''}`.trim();
 
     return {
       linea: formData.linea === '' ? null : Number(formData.linea),
       sku_descripcion: sku_descripcion || null,
-      sku_envasado: sku_envasado,
-      sku_jarabe: sku_jarabe,
+      sku_envasado,
+      jarabe,
+      sku_jarabe,
       formato: formData.formato === '' ? null : Number(formData.formato),
       marca: marca || null,
       sabor: sabor || null,
@@ -110,64 +114,34 @@ const CrearEnvase: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const payload = buildPayload();
-    console.log('Payload listo para enviar:', payload);
-
     try {
-      const res = await fetch('/productos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const contentType = (res.headers.get('content-type') || '').toLowerCase();
-
-      if (!res.ok) {
-        if (contentType.includes('application/json')) {
-          const err = await res.json();
-          console.error('Error del servidor (json):', err);
-          throw new Error(JSON.stringify(err));
-        } else {
-          const txt = await res.text();
-          console.error('Error del servidor (html/text):', txt);
-          throw new Error(`Server returned ${res.status} - see console for body`);
-        }
-      }
-
-      // Si llegamos aquí, la respuesta fue OK. Cambiamos la vista a Formulacion.
-      if (contentType.includes('application/json')) {
-        const data = await res.json();
-        console.log('Guardado con éxito:', data);
-      } else {
-        const text = await res.text();
-        console.log('Respuesta no-JSON del servidor (posible Inertia/HTML):', text);
-      }
-
-      // --- CAMBIO DE VISTA ---
+        //Borra en porducion 
+      const res = await handleCreateProduct(payload);
       setMostrarFormulacion(true);
-
+      console.log('Respuesta backend:', res);
     } catch (err) {
-      console.error('Error al enviar:', err);
-      // no cambiamos vista si hay error
+      console.error('Error crear producto:', err);
+      alert('Error al crear producto. Revisa consola.');
     }
   };
 
-  // Si mostrarFormulacion true, mostramos solo Formulacion (cambio de página)
   if (mostrarFormulacion) {
-    return <Formulacion 
-      sku_description={buildPayload().sku_descripcion || ''} 
-      sku_jarabe={formData.jarabe === 'si' ? 'si' : 'no'} 
-    />;
+    return (
+      <Formulacion
+        sku_description={buildPayload().sku_descripcion || ''}
+        jarabe={formData.jarabe === 'si' ? 'si' : 'no'}
+        unidadPaquete={formData.unidadPaquete}
+        formulacion_id={buildPayload().sku_envasado || 0}
+        sku_jarabe={formData.sku_jarabe ? Number(formData.sku_jarabe) : undefined}
+      />
+    );
   }
 
   return (
     <div className="p-4 bg-black rounded-lg shadow">
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-5 gap-4 mb-6">
+        <div className={`grid ${showJarabeFields ? 'grid-cols-6' : 'grid-cols-5'} gap-4 mb-6`}>
           <div>
             <label className="block text-sm font-medium mb-1 text-white">SKU (envasado)</label>
             <input
@@ -175,10 +149,24 @@ const CrearEnvase: React.FC = () => {
               name="sku"
               value={formData.sku as any}
               onChange={handleChange}
-              placeholder="Ingrese SKU"
+              placeholder="Ingrese SKU Envasado"
               className="w-full border rounded-md p-2 bg-black text-white"
             />
           </div>
+
+          {showJarabeFields && (
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">SKU (jarabe)</label>
+              <input
+                type="number"
+                name="sku_jarabe"
+                value={formData.sku_jarabe as any}
+                onChange={handleChange}
+                placeholder="Ingrese SKU Jarabe"
+                className="w-full border rounded-md p-2 bg-black text-white"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium mb-1 text-white">Marca</label>
@@ -237,7 +225,6 @@ const CrearEnvase: React.FC = () => {
               onChange={handleChange}
               className="w-full border rounded-md p-2 bg-black text-white"
             >
-              <option value="">---</option>
               <option value="no">No</option>
               <option value="si">Si</option>
             </select>
@@ -433,8 +420,9 @@ const CrearEnvase: React.FC = () => {
           <button
             type="submit"
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            disabled={loading}
           >
-            Enviar
+            {loading ? 'Guardando...' : 'Enviar'}
           </button>
         </div>
       </form>

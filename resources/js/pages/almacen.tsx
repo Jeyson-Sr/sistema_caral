@@ -120,7 +120,7 @@ export default function Almacen() {
           <div className="mt-2">
             <button
               disabled={!pending05 || loadingSave}
-              onClick={() => saveJsonToServer(alm05Data, '/almacen/05', setPending05)}
+              onClick={() => saveJsonToServer(alm05Data, '/almacen/create/05', setPending05)}
               className={`px-4 py-2 rounded-md font-medium ${pending05 && !loadingSave ? 'bg-green-600' : 'bg-gray-500 cursor-not-allowed'}`}
             >
               {loadingSave ? 'Guardando...' : 'Guardar Almacen 05'}
@@ -142,7 +142,7 @@ export default function Almacen() {
           <div className="mt-2">
             <button
               disabled={!pending20 || loadingSave}
-              onClick={() => saveJsonToServer(alm20Data, '/almacen/20', setPending20)}
+              onClick={() => saveJsonToServer(alm20Data, '/almacen/create/20', setPending20)}
               className={`px-4 py-2 rounded-md font-medium ${pending20 && !loadingSave ? 'bg-green-600' : 'bg-gray-500 cursor-not-allowed'}`}
             >
               {loadingSave ? 'Guardando...' : 'Guardar Almacen 20'}

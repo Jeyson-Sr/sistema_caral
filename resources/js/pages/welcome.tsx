@@ -16,13 +16,13 @@ export default function Welcome() {
                     <main className="flex w-full max-w-[335px] flex-col items-center justify-center lg:max-w-4xl">
                         <div className="w-80 h-70 overflow-hidden mb-8">
                             <img 
-                                src="/img/LOGO-AJE.png"
-                                alt="AJE CARAL Logo"
+                                src="/img/LOGO-CARAL.png"
+                                alt="AJE / CARAL Logo"
                                 className="w-full h-full object-cover"
                             />
                         </div>
-                        <h1 className="text-4xl font-bold text-center mb-4">
-                            AJE CARAL
+                        <h1 className="text-4xl text-white font-bold text-center mb-4">
+                            AJE / CARAL
                         </h1>
                     </main>
 
