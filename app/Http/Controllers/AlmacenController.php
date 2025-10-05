@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Almacen05;
 use App\Models\Almacen20;
+use App\Models\Almacen13;
 
 class AlmacenController extends Controller
 {
@@ -69,6 +70,28 @@ class AlmacenController extends Controller
         }
         return response()->json(['success' => true]);
     }
+
+    public function store13(Request $request)
+    {
+        foreach ($request->data as $row) {
+            Almacen13::updateOrCreate(
+                ['articulo' => $row['Articulo.']], // clave única
+                [
+                    'descripcion'   => $row['Descripcion'] ?? '',
+                    'u_m'           => $row['U.M'] ?? '',
+                    'contenido'     => $row['Contenido'] ?? 0,
+                    'saldo_inicial' => $row['Saldo_Inicial'] ?? 0,
+                    'ingresos'      => $row['Ingresos'] ?? 0,
+                    'salidas'       => $row['Salidas'] ?? 0,
+                    'saldo_final'   => $row['Saldo_Final'] ?? 0,
+                    'lin_art'       => $row['Lin_art'] ?? 0,
+                    'nombre_linea'  => $row['Nombre_Linea'] ?? '',
+                ]
+            );
+        }
+        return response()->json(['success' => true]);
+    }
+
     /**
      * Display the specified resource.
      */
@@ -84,7 +107,7 @@ class AlmacenController extends Controller
     {
         //
     }
-
+    
     /**
      * Update the specified resource in storage.
      */
@@ -100,17 +123,21 @@ class AlmacenController extends Controller
     {
         //
     }
-
-
-        public function index20()
+    
+    
+    public function index20()
     {
         return Almacen20::all();
     }
-
+    
     public function index05()
     {
         return Almacen05::all();
     }
-
-
+    
+    public function index13()
+    {
+        return Almacen13::all();
+    }
+    
 }

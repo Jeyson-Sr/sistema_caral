@@ -37,7 +37,6 @@ export interface ProductionCache {
 export interface ProductionResult {
   inputs: ProductionInput;
   computed: ComputedMetrics;
-
 }
 
 function toNumber(v: any): number | null {
@@ -127,6 +126,7 @@ export function computeProductionMetrics(input: ProductionInput): ProductionResu
     velocidad_pallet_hora = velocidad_bot_hora / unidad_x_paquete / paquetes_x_pallets;
   }
 
+  
   const computed: ComputedMetrics = {
     paquetes_x_pallets,
     ratio_bebida,
@@ -141,12 +141,27 @@ export function computeProductionMetrics(input: ProductionInput): ProductionResu
     kg_azucar_real,
     velocidad_pallet_hora,
   };
-
+  
   return {
     inputs: input,
     computed,
   };
 }
+
+
+
+export function calculatePackagesLaunched(
+  formato: number,
+  unidad_x_paquete: number,
+  cantidad_batch: number,
+  bebida_final: number
+): number | null {
+  if (formato > 0 && unidad_x_paquete > 0) {
+    return (cantidad_batch * bebida_final) / formato / unidad_x_paquete;
+  }
+  return null;
+}
+
 
 // Example usage in .tsx (not exported, just for reference):
 /*
