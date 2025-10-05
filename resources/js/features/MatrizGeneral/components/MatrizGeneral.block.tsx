@@ -188,7 +188,7 @@ export default function MatrizGeneralBlock() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-sm font-medium">
-                            L{String(producto.linea).padStart(2, '0')}
+                            {String(producto.linea).padStart(2, '0')}
                           </span>
                         </div>
                       </td>

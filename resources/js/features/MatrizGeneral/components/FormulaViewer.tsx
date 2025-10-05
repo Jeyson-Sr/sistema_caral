@@ -49,7 +49,8 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
   const base = paquetes || computed.paquetes_lanzados || 1;
   const value = row.cantidad * multiplier * base;
 
-  return Number.isInteger(value) ? value : value.toFixed(4);
+  // return Number.isInteger(value) ? value : value.toFixed(4);
+  return Math.round(value).toLocaleString("es-MX");
 }
 
 
@@ -162,7 +163,7 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                 <div className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full border border-emerald-200">
                   <Calculator size={14} className="text-emerald-600" />
                   <span className="text-xs font-medium text-emerald-700">
-                    {paquetes ? `Paquetes: ${paquetes}` : `Paquetes: ${Math.round(computed.paquetes_lanzados || 1)}`}
+                    {paquetes ? `Paquetes: ${Number(paquetes).toLocaleString("es-MX")}` : `Paquetes: ${Math.round(computed.paquetes_lanzados || 1).toLocaleString("es-MX")}`}
                   </span>
                 </div>
               </div>
@@ -304,6 +305,12 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
           </div>
         </div>
       )}
+
+      <div className="flex justify-end">
+        <button type="button" className="mt-4 px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors duration-150">
+          Agregar a Plan
+        </button>
+      </div>
     </div>
   );
 };

@@ -66,14 +66,7 @@ export default function AlmacenBlock() {
             </div>
           )}
 
-          {/* JSON Preview
-          {(alm05Data.length > 0 || alm13Data.length > 0 || alm20Data.length > 0) && (
-            <div className="grid md:grid-cols-3 gap-4">
-              <JsonPreview title="Almacén 05" data={alm05Data} />
-              <JsonPreview title="Almacén 13" data={alm13Data} />
-              <JsonPreview title="Almacén 20" data={alm20Data} />
-            </div>
-          )} */}
+         
 
           {/* Viewer */}
           <div>

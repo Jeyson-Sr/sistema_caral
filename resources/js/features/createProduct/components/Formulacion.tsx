@@ -1,5 +1,5 @@
 // resources/js/features/createProduct/components/Formulacion.improved.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, memo, useEffect, useState } from 'react';
 import { Package, Beaker, Plus, Save, Loader2, Check, AlertCircle } from 'lucide-react';
 import type { FilaFormulacion, Almacen } from '../types';
 import { postFormulation } from '../services/formulationService';
@@ -51,7 +51,207 @@ const useAlmacen05 = (endpoint = '/almacen/05') => {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// Tipos del componente (props)
+// Row memoizado (con doble click para ingresar `articulo`)
+////////////////////////////////////////////////////////////////////////////////
+interface RowProps {
+  fila: FilaFormulacion;
+  index: number;
+  datalistId: string;
+  onChange: (id: number, campo: keyof FilaFormulacion, valor: string) => void;
+  onLookup: (id: number, articuloValue: string) => void;
+  unidadPaquete?: string | number;
+}
+const Row: React.FC<RowProps> = ({ fila, index, datalistId, onChange, onLookup, unidadPaquete }) => {
+  const [editingCode, setEditingCode] = React.useState(false);
+  const [codeValue, setCodeValue] = React.useState('');
+
+  const handleDoubleClickCode = () => {
+    setCodeValue(fila.articulo !== null ? String(fila.articulo) : '');
+    setEditingCode(true);
+    setTimeout(() => {
+      const el = document.getElementById(`code-input-${fila.id}`) as HTMLInputElement | null;
+      if (el) el.select();
+    }, 0);
+  };
+
+  const submitCode = () => {
+    const trimmed = codeValue.trim();
+    if (!trimmed) {
+      setEditingCode(false);
+      return;
+    }
+    onLookup(fila.id, trimmed);
+    setEditingCode(false);
+  };
+
+  return (
+    <div className="group relative">
+      <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-400 to-blue-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
+
+      <div className="flex gap-4 items-start bg-gradient-to-r from-slate-50 to-white p-4 rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-200">
+        <div className="flex-1 space-y-1">
+          <label className="block text-xs font-medium text-slate-700 mb-1">Artículo #{index + 1}</label>
+          <input
+            list={datalistId}
+            className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white/90 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+            value={fila.descripcion}
+            onChange={(e) => onChange(fila.id, 'descripcion', e.target.value)}
+            placeholder="Buscar artículo..."
+            required
+          />
+        </div>
+
+        <div className="w-36 space-y-1">
+          <label className="block text-xs font-medium text-slate-700 mb-1">Cantidad</label>
+          <input
+            inputMode="decimal"
+            className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white/90 text-right text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+            value={fila.cantidad}
+            onChange={(e) => onChange(fila.id, 'cantidad', e.target.value)}
+            placeholder="0.00"
+            required
+          />
+        </div>
+
+        <div className="w-32 space-y-1">
+          <label className="block text-xs font-medium text-slate-700 mb-1">Código</label>
+          <div
+            className="h-12 flex items-center justify-center cursor-pointer"
+            onDoubleClick={handleDoubleClickCode}
+            title="Doble click para ingresar artículo (solo el número)"
+          >
+            {editingCode ? (
+              <input
+                id={`code-input-${fila.id}`}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') submitCode();
+                  if (e.key === 'Escape') setEditingCode(false);
+                }}
+                onBlur={submitCode}
+                value={codeValue}
+                onChange={(e) => setCodeValue(e.target.value.replace(/[^\d\-]/g, ''))}
+                className="px-3 py-2 rounded-md border border-slate-200 bg-white text-sm w-28 text-center"
+                placeholder="ingresa artículo"
+              />
+            ) : fila.articulo !== null ? (
+              <span className="inline-flex items-center px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-medium">
+                <Check size={14} className="mr-1" />
+                #{fila.articulo}
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-600 text-sm">
+                <AlertCircle size={14} className="mr-1" />
+                Sin código
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const rowAreEqual = (a: RowProps, b: RowProps) =>
+  a.fila.id === b.fila.id &&
+  a.fila.descripcion === b.fila.descripcion &&
+  a.fila.cantidad === b.fila.cantidad &&
+  (a.fila.articulo ?? null) === (b.fila.articulo ?? null) &&
+  a.datalistId === b.datalistId &&
+  a.onChange === b.onChange &&
+  a.onLookup === b.onLookup &&
+  a.unidadPaquete === b.unidadPaquete;
+
+const MemoRow = memo(Row, rowAreEqual);
+
+////////////////////////////////////////////////////////////////////////////////
+// EnvasadoForm y JarabeForm (reciben onChange optimizado + onLookup)
+////////////////////////////////////////////////////////////////////////////////
+interface EnvasadoFormProps {
+  filas: FilaFormulacion[];
+  envasesList: Almacen[];
+  onChange: (id: number, campo: keyof FilaFormulacion, valor: string) => void;
+  onLookup: (id: number, articuloValue: string) => void;
+  addRow: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  submitting: boolean;
+  unidadPaquete?: string | number;
+}
+const EnvasadoForm: React.FC<EnvasadoFormProps> = ({ filas, envasesList, onChange, onLookup, addRow, onSubmit, submitting, unidadPaquete }) => {
+  const datalistId = 'almacenes-envases';
+  return (
+    <form onSubmit={onSubmit} className="space-y-6">
+      <div className="space-y-4">
+        {filas.map((f, i) => (
+          <div key={f.id}>
+            <MemoRow fila={f} index={i} datalistId={datalistId} onChange={onChange} onLookup={onLookup} unidadPaquete={unidadPaquete} />
+          </div>
+        ))}
+      </div>
+
+      <datalist id={datalistId}>{envasesList.map((it) => <option key={it.id} value={it.descripcion} />)}</datalist>
+
+      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+        <button type="button" onClick={addRow} className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-200">
+          <Plus size={16} />
+          Agregar Fila
+        </button>
+
+        <button type="submit" disabled={submitting} className="relative overflow-hidden px-6 py-3 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity"></div>
+          <span className="relative flex items-center gap-2">
+            {submitting ? (<> <Loader2 size={16} className="animate-spin" /> Enviando... </>) : (<> <Save size={16} /> Guardar Envasado </>)}
+          </span>
+        </button>
+      </div>
+    </form>
+  );
+};
+
+interface JarabeFormProps {
+  filas: FilaFormulacion[];
+  materiaList: Almacen[];
+  onChange: (id: number, campo: keyof FilaFormulacion, valor: string) => void;
+  onLookup: (id: number, articuloValue: string) => void;
+  addRow: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  submitting: boolean;
+  sku_jarabe_global?: number | null;
+  unidadPaquete?: string | number;
+}
+const JarabeForm: React.FC<JarabeFormProps> = ({ filas, materiaList, onChange, onLookup, addRow, onSubmit, submitting, unidadPaquete }) => {
+  const datalistId = 'almacenes-materia';
+  return (
+    <form onSubmit={onSubmit} className="space-y-6">
+      <div className="space-y-4">
+        {filas.map((f, i) => (
+          <div key={f.id}>
+            <MemoRow fila={f} index={i} datalistId={datalistId} onChange={onChange} onLookup={onLookup} unidadPaquete={unidadPaquete} />
+          </div>
+        ))}
+      </div>
+
+      <datalist id={datalistId}>{materiaList.map((it) => <option key={it.id} value={it.descripcion} />)}</datalist>
+
+      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+        <button type="button" onClick={addRow} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium rounded-lg border border-indigo-200 hover:border-indigo-300 transition-all duration-200">
+          <Plus size={16} />
+          Agregar Fila
+        </button>
+
+        <button type="submit" disabled={submitting} className="relative overflow-hidden px-6 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:via-purple-600 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity"></div>
+          <span className="relative flex items-center gap-2">
+            {submitting ? (<> <Loader2 size={16} className="animate-spin" /> Enviando... </>) : (<> <Beaker size={16} /> Guardar Jarabe y Finalizar </>)}
+          </span>
+        </button>
+      </div>
+    </form>
+  );
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Componente principal (mantiene tu lógica de envío tal cual)
 ////////////////////////////////////////////////////////////////////////////////
 interface Props {
   sku_description: string;
@@ -61,36 +261,24 @@ interface Props {
   sku_jarabe?: number | null;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Componente
-////////////////////////////////////////////////////////////////////////////////
-const Formulacion: React.FC<Props> = ({
-  sku_description,
-  jarabe,
-  unidadPaquete,
-  formulacion_id,
-  sku_jarabe,
-}) => {
+const Formulacion: React.FC<Props> = ({ sku_description, jarabe, unidadPaquete, formulacion_id, sku_jarabe }) => {
   const { envasesList, materiaList } = useAlmacen05();
 
-  const [filas, setFilas] = useState<FilaFormulacion[]>([
-    { id: 1, descripcion: '', articulo: null, cantidad: '' },
-  ]);
-  const [jarabeFilas, setJarabeFilas] = useState<FilaFormulacion[]>([
-    { id: 1, descripcion: '', articulo: null, sku_jarabe: sku_jarabe ?? null, cantidad: '' },
-  ]);
+  const [filas, setFilas] = useState<FilaFormulacion[]>([{ id: 1, descripcion: '', articulo: null, cantidad: '' }]);
+  const [jarabeFilas, setJarabeFilas] = useState<FilaFormulacion[]>([{ id: 1, descripcion: '', articulo: null, sku_jarabe: sku_jarabe ?? null, cantidad: '' }]);
 
   const [showEnvasado, setShowEnvasado] = useState(true);
   const [showJarabeForm, setShowJarabeForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // validaciones simples
+  // validaciones simples (idéntica)
   const validarFilasLocal = (rows: FilaFormulacion[]) => {
     if (!rows.length) return false;
     for (const r of rows) if (!r.descripcion.trim() || !r.cantidad.trim() || r.articulo === null) return false;
     return true;
   };
 
+  // === Aquí mantengo EXACTAMENTE tu normalizeForBackend / doPost / onSubmitEnvasado / onSubmitJarabe ===
   const normalizeForBackend = (rows: FilaFormulacion[], isJarabe = false) =>
     rows.map((r) => ({
       articulo: r.articulo,
@@ -167,281 +355,121 @@ const Formulacion: React.FC<Props> = ({
       }
     }
   };
+  // === fin bloque idéntico ===
 
-  const addEnvasadoRow = () =>
-    setFilas((prev) => [...prev, { id: nextId(prev), descripcion: '', articulo: null, cantidad: '' }]);
-  const addJarabeRow = () =>
-    setJarabeFilas((prev) => [...prev, { id: nextId(prev), descripcion: '', articulo: null, sku_jarabe: sku_jarabe ?? null, cantidad: '' }]);
+  // Handlers optimizados: actualizan solo la fila modificada y retornan prev si no hay cambios
+  const handleChangeEnvasado = useCallback((id: number, campo: keyof FilaFormulacion, valor: string) => {
+    setFilas((prev) => {
+      const idx = prev.findIndex((p) => p.id === id);
+      if (idx === -1) return prev;
+      const old = prev[idx];
 
-  // EnvasadoForm (inline) — solo diseño cambiada, lógica intacta
-      const EnvasadoForm: React.FC<any> = ({ filas, setFilas, envasesList, addRow, onSubmit, submitting, unidadPaquete }) => {
-    const handleChange = (id: number, campo: keyof FilaFormulacion, valor: string) => {
-      setFilas((prev: FilaFormulacion[]) =>
-        prev.map((f: FilaFormulacion) => {
-          if (f.id !== id) return f;
-          if (campo === 'descripcion') {
-            // Solo buscar coincidencias si hay al menos 2 caracteres
-            const match = valor.length >= 2 
-              ? envasesList.find((a: Almacen) => a.descripcion.toLowerCase() === valor.toLowerCase())
-              : null;
-            return { ...f, descripcion: valor, articulo: match ? match.articulo : null };
-          }
-          if (campo === 'cantidad') return { ...f, cantidad: validarNumero(valor) };
-          return f;
-        })
-      );
-    };
+      if (campo === 'descripcion') {
+        const match = valor.length >= 2 ? envasesList.find((a) => a.descripcion.toLowerCase() === valor.toLowerCase()) ?? null : null;
+        const newArticulo = match ? match.articulo : null;
+        if (old.descripcion === valor && (old.articulo ?? null) === (newArticulo ?? null)) return prev;
+        const updated = { ...old, descripcion: valor, articulo: newArticulo };
+        const next = prev.slice(); next[idx] = updated; return next;
+      }
 
-    return (
-      <form onSubmit={onSubmit} className="space-y-6">
-        <div className="space-y-4">
-          {filas.map((f: FilaFormulacion, index: number) => (
-            <div key={f.id} className="group relative">
-              <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-400 to-blue-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
-              <div className="flex gap-4 items-start bg-gradient-to-r from-slate-50 to-white p-4 rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-200">
-                <div className="flex-1 space-y-1">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Artículo de Envasado #{index + 1}
-                  </label>
-                  <input
-                    list="almacenes-envases"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white/90 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                    value={f.descripcion}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      handleChange(f.id, 'descripcion', v);
-                      // Solo auto-llenar cantidad si hay match y valor significativo
-                      if (v.length >= 2 && v.toLowerCase().match(/(tapa|etiqueta|preforma)/)) {
-                        handleChange(f.id, 'cantidad', unidadPaquete?.toString() || '');
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      // Prevenir que se salga del input con pocas letras
-                      if ((e.key === 'Tab' || e.key === 'Enter') && f.descripcion.trim().length <= 1) {
-                        e.preventDefault();
-                        return;
-                      }
-                    }}
-                    placeholder="Buscar artículo..."
-                    required
-                  />
-                  <datalist id="almacenes-envases">{envasesList.map((it: Almacen) => <option key={it.id} value={it.descripcion} />)}</datalist>
-                </div>
+      if (campo === 'cantidad') {
+        const nueva = validarNumero(valor);
+        if (old.cantidad === nueva) return prev;
+        const updated = { ...old, cantidad: nueva }; const next = prev.slice(); next[idx] = updated; return next;
+      }
 
-                <div className="w-36 space-y-1">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Cantidad
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white/90 text-right text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                    value={f.cantidad}
-                    onChange={(e) => handleChange(f.id, 'cantidad', e.target.value)}
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
+      if ((old as any)[campo] === valor) return prev;
+      const updated = { ...old, [campo]: valor }; const next = prev.slice(); next[idx] = updated; return next;
+    });
+  }, [envasesList]);
 
-                <div className="w-32 space-y-1">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Código
-                  </label>
-                  <div className="h-12 flex items-center justify-center">
-                    {f.articulo !== null ? (
-                      <span className="inline-flex items-center px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-medium">
-                        <Check size={14} className="mr-1" />
-                        #{f.articulo}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-600 text-sm">
-                        <AlertCircle size={14} className="mr-1" />
-                        Sin código
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+  const handleChangeJarabe = useCallback((id: number, campo: keyof FilaFormulacion, valor: string) => {
+    setJarabeFilas((prev) => {
+      const idx = prev.findIndex((p) => p.id === id);
+      if (idx === -1) return prev;
+      const old = prev[idx];
 
-        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-          <button 
-            type="button" 
-            onClick={addRow} 
-            className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-200"
-          >
-            <Plus size={16} />
-            Agregar Fila
-          </button>
+      if (campo === 'descripcion') {
+        if (valor.toLowerCase().includes('preforma')) {
+          if (old.descripcion === valor && old.articulo === null && (old.sku_jarabe ?? null) === (sku_jarabe ?? null)) return prev;
+          const updated = { ...old, descripcion: valor, articulo: null, sku_jarabe: sku_jarabe ?? null };
+          const next = prev.slice(); next[idx] = updated; return next;
+        }
+        const match = valor.length >= 2 ? materiaList.find((a) => a.descripcion.toLowerCase() === valor.toLowerCase()) ?? null : null;
+        const newArticulo = match ? match.articulo : null;
+        if (old.descripcion === valor && (old.articulo ?? null) === (newArticulo ?? null)) return prev;
+        const updated = { ...old, descripcion: valor, articulo: newArticulo, sku_jarabe: sku_jarabe ?? null };
+        const next = prev.slice(); next[idx] = updated; return next;
+      }
 
-          <button 
-            type="submit" 
-            disabled={submitting} 
-            className="relative overflow-hidden px-6 py-3 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity"></div>
-            <span className="relative flex items-center gap-2">
-              {submitting ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Save size={16} />
-                  Guardar Envasado
-                </>
-              )}
-            </span>
-          </button>
-        </div>
-      </form>
-    );
-  };
+      if (campo === 'cantidad') {
+        const nueva = validarNumero(valor);
+        if (old.cantidad === nueva) return prev;
+        const updated = { ...old, cantidad: nueva, sku_jarabe: sku_jarabe ?? null };
+        const next = prev.slice(); next[idx] = updated; return next;
+      }
 
-  // JarabeForm (inline) — solo diseño cambiada, lógica intacta
-      const JarabeForm: React.FC<any> = ({ filas, setFilas, materiaList, addRow, onSubmit, submitting, sku_jarabe_global }) => {
-    const handleChange = (id: number, campo: keyof FilaFormulacion, valor: string) => {
-      setFilas((prev: FilaFormulacion[]) =>
-        prev.map((f: FilaFormulacion) => {
-          if (f.id !== id) return f;
-          if (campo === 'descripcion') {
-            if (valor.toLowerCase().includes('preforma')) {
-              return { ...f, descripcion: valor, articulo: null, sku_jarabe: sku_jarabe_global ?? null };
-            }
-            // Solo buscar coincidencias si hay al menos 2 caracteres
-            const match = valor.length >= 2 
-              ? materiaList.find((a: Almacen) => a.descripcion.toLowerCase() === valor.toLowerCase())
-              : null;
-            return { ...f, descripcion: valor, articulo: match ? match.articulo : null, sku_jarabe: sku_jarabe_global ?? null };
-          }
-          if (campo === 'cantidad') return { ...f, cantidad: validarNumero(valor), sku_jarabe: sku_jarabe_global ?? null };
-          return f;
-        })
-      );
-    };
+      if ((old as any)[campo] === valor) return prev;
+      const updated = { ...old, [campo]: valor }; const next = prev.slice(); next[idx] = updated; return next;
+    });
+  }, [materiaList, sku_jarabe]);
 
-    return (
-      <form onSubmit={onSubmit} className="space-y-6">
-        <div className="space-y-4">
-          {filas.map((f: FilaFormulacion, index: number) => (
-            <div key={f.id} className="group relative">
-              <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-indigo-400 to-purple-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
-              <div className="flex gap-4 items-start bg-gradient-to-r from-indigo-50/50 to-white p-4 rounded-xl border border-indigo-200/40 shadow-sm hover:shadow-md transition-all duration-200 hover:border-indigo-300/60">
-                <div className="flex-1 space-y-1">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Materia Prima #{index + 1}
-                  </label>
-                  <input
-                    list="almacenes-materia"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white/90 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
-                    value={f.descripcion}
-                    onChange={(e) => handleChange(f.id, 'descripcion', e.target.value)}
-                    onKeyDown={(e) => {
-                      // Prevenir que se salga del input con pocas letras
-                      if ((e.key === 'Tab' || e.key === 'Enter') && f.descripcion.trim().length <= 1) {
-                        e.preventDefault();
-                        return;
-                      }
-                    }}
-                    placeholder="Buscar materia prima..."
-                    required
-                  />
-                  <datalist id="almacenes-materia">{materiaList.map((it: Almacen) => <option key={it.id} value={it.descripcion} />)}</datalist>
-                  {f.descripcion.toLowerCase().includes('preforma') && (
-                    <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
-                      <AlertCircle size={14} className="text-amber-500" />
-                      <span className="text-xs text-amber-700 font-medium">Artículo con "preforma" bloqueado en Jarabe</span>
-                    </div>
-                  )}
-                </div>
+  // lookup handlers (buscar por propiedad `articulo` - NO por "codigo")
+  const handleLookupEnvasado = useCallback((id: number, articuloValue: string) => {
+    const found = envasesList.find((a) => String(a.articulo) === String(articuloValue));
+    if (!found) {
+      alert(`Artículo ${articuloValue} no encontrado en Envasado.`);
+      return;
+    }
 
-                <div className="w-36 space-y-1">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Cantidad
-                  </label>
-                  <input
-                    inputMode="decimal"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white/90 text-right text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
-                    value={f.cantidad}
-                    onChange={(e) => handleChange(f.id, 'cantidad', e.target.value)}
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
+    setFilas((prev) => {
+      const idx = prev.findIndex((p) => p.id === id);
+      if (idx === -1) return prev;
+      const old = prev[idx];
+      const newCantidad = /(?:tapa|etiqueta|preforma)/i.test(found.descripcion) ? (unidadPaquete?.toString() || '') : old.cantidad;
+      if (old.descripcion === found.descripcion && (old.articulo ?? null) === (found.articulo ?? null) && old.cantidad === newCantidad) return prev;
+      const updated = { ...old, descripcion: found.descripcion, articulo: found.articulo, cantidad: newCantidad };
+      const copy = prev.slice(); copy[idx] = updated; return copy;
+    });
+  }, [envasesList, unidadPaquete]);
 
-                <div className="w-32 space-y-1">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Código
-                  </label>
-                  <div className="h-12 flex items-center justify-center">
-                    {f.articulo !== null ? (
-                      <span className="inline-flex items-center px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-medium">
-                        <Check size={14} className="mr-1" />
-                        #{f.articulo}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-600 text-sm">
-                        <AlertCircle size={14} className="mr-1" />
-                        Sin código
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+  const handleLookupJarabe = useCallback((id: number, articuloValue: string) => {
+    const found = materiaList.find((a) => String(a.articulo) === String(articuloValue));
+    if (!found) {
+      alert(`Artículo ${articuloValue} no encontrado en Materia Prima.`);
+      return;
+    }
 
-        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-          <button 
-            type="button" 
-            onClick={addRow} 
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium rounded-lg border border-indigo-200 hover:border-indigo-300 transition-all duration-200"
-          >
-            <Plus size={16} />
-            Agregar Fila
-          </button>
+    setJarabeFilas((prev) => {
+      const idx = prev.findIndex((p) => p.id === id);
+      if (idx === -1) return prev;
+      const old = prev[idx];
 
-          <button 
-            type="submit" 
-            disabled={submitting} 
-            className="relative overflow-hidden px-6 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:via-purple-600 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity"></div>
-            <span className="relative flex items-center gap-2">
-              {submitting ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Beaker size={16} />
-                  Guardar Jarabe y Finalizar
-                </>
-              )}
-            </span>
-          </button>
-        </div>
-      </form>
-    );
-  };
+      if (found.descripcion.toLowerCase().includes('preforma')) {
+        const updated = { ...old, descripcion: found.descripcion, articulo: null, sku_jarabe: sku_jarabe ?? null };
+        const copy = prev.slice(); copy[idx] = updated; return copy;
+      }
+
+      const newCantidad = /(?:tapa|etiqueta|preforma)/i.test(found.descripcion) ? (unidadPaquete?.toString() || '') : old.cantidad;
+      if (old.descripcion === found.descripcion && (old.articulo ?? null) === (found.articulo ?? null) && old.cantidad === newCantidad) return prev;
+      const updated = { ...old, descripcion: found.descripcion, articulo: found.articulo, sku_jarabe: sku_jarabe ?? null, cantidad: newCantidad };
+      const copy = prev.slice(); copy[idx] = updated; return copy;
+    });
+  }, [materiaList, sku_jarabe, unidadPaquete]);
+
+  // add rows (estables)
+  const addEnvasadoRow = useCallback(() => setFilas((prev) => [...prev, { id: nextId(prev), descripcion: '', articulo: null, cantidad: '' }]), []);
+  const addJarabeRow = useCallback(() => setJarabeFilas((prev) => [...prev, { id: nextId(prev), descripcion: '', articulo: null, sku_jarabe: sku_jarabe ?? null, cantidad: '' }]), [sku_jarabe]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header Card */}
         <div className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/60 mb-8">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-purple-500/10"></div>
           <div className="relative p-8">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-3 h-8 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full"></div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                {sku_description}
-              </h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">{sku_description}</h1>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-200">
@@ -452,7 +480,6 @@ const Formulacion: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Envasado Form */}
         {showEnvasado && (
           <div className="relative overflow-hidden bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/60 mb-8">
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-green-500/3 to-emerald-500/5"></div>
@@ -463,20 +490,27 @@ const Formulacion: React.FC<Props> = ({
                 </div>
                 <h2 className="text-xl font-bold text-slate-800">Fórmula de Envasado</h2>
               </div>
-              <EnvasadoForm 
-                filas={filas} 
-                setFilas={setFilas} 
-                envasesList={envasesList} 
-                addRow={addEnvasadoRow} 
-                onSubmit={onSubmitEnvasado} 
-                submitting={submitting} 
-                unidadPaquete={unidadPaquete} 
+
+              <EnvasadoForm
+                filas={filas}
+                envasesList={envasesList}
+                onChange={(id, campo, valor) => {
+                  handleChangeEnvasado(id, campo, valor);
+                  // auto-fill cantidad si coincide con palabras clave
+                  if (campo === 'descripcion' && valor.length >= 2 && /(?:tapa|etiqueta|preforma)/i.test(valor)) {
+                    handleChangeEnvasado(id, 'cantidad', unidadPaquete?.toString() || '');
+                  }
+                }}
+                onLookup={handleLookupEnvasado}
+                addRow={addEnvasadoRow}
+                onSubmit={onSubmitEnvasado}
+                submitting={submitting}
+                unidadPaquete={unidadPaquete}
               />
             </div>
           </div>
         )}
 
-        {/* Jarabe Form */}
         {showJarabeForm && jarabe.toLowerCase() === 'si' && (
           <div className="relative overflow-hidden bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/60">
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/3 to-indigo-500/5"></div>
@@ -487,14 +521,17 @@ const Formulacion: React.FC<Props> = ({
                 </div>
                 <h2 className="text-xl font-bold text-slate-800">Fórmula de Jarabe</h2>
               </div>
-              <JarabeForm 
-                filas={jarabeFilas} 
-                setFilas={setJarabeFilas} 
-                materiaList={materiaList} 
-                addRow={addJarabeRow} 
-                onSubmit={onSubmitJarabe} 
-                submitting={submitting} 
-                sku_jarabe_global={sku_jarabe ?? null} 
+
+              <JarabeForm
+                filas={jarabeFilas}
+                materiaList={materiaList}
+                onChange={handleChangeJarabe}
+                onLookup={handleLookupJarabe}
+                addRow={addJarabeRow}
+                onSubmit={onSubmitJarabe}
+                submitting={submitting}
+                sku_jarabe_global={sku_jarabe ?? null}
+                unidadPaquete={unidadPaquete}
               />
             </div>
           </div>
