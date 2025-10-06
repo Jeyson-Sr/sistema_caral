@@ -100,7 +100,7 @@ export function computeProductionMetrics(input: ProductionInput): ProductionResu
       dias_produccion = horas_produccion / 24;
     }
 
-    litros_jarabe_real = (litros_batch > 0) ? cantidad_batch * litros_batch : null;
+    litros_jarabe_real = (litros_batch > 0) ? cantidad_batch * litros_batch : (bebida_final > 0) ? cantidad_batch * bebida_final : null;
     kg_azucar_real = (factor_azucar_kg > 0 && cant_azucar_batch !== null) ? cantidad_batch * cant_azucar_batch : null;
 
   } else if (cantidad_paquetes !== null) {

@@ -1,7 +1,7 @@
 // features/matrizGeneral/components/BatchModal.tsx
-import React, { useMemo, useState } from "react";
-import type { BatchData } from "../types";
-import { fetchFormula } from "../services/matrizService";
+import React, { useEffect, useMemo, useState } from "react";
+import type { AlmacenResponse, BatchData } from "../types";
+import { fetchFormula, fetchAlmacen } from "../services/matrizService";
 import FormulaViewer from "./FormulaViewer";
 import ProductionMetrics from "./MetricaProducion";
 import { 
@@ -34,6 +34,8 @@ const numberOrSkip = (v?: number) =>
 const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title }) => {
   const [formulaData, setFormulaData] = useState<any>(null);
   const [isFormulaOpen, setIsFormulaOpen] = useState(false);
+  const [almacenData, setAlmacenData] = useState<AlmacenResponse | null>(null);
+  const [isAlmacenOpen, setIsAlmacenOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -55,7 +57,28 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
       setErrorMsg(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
+      fetchAlmacenData();
     }
+  };
+  
+  const fetchAlmacenData = async () => {
+  try {
+    // 1) Trae la respuesta (fetchAlmacen puede devolver res o res.data)
+    const res = await fetchAlmacen("/almacen/05");
+
+    // 2) Normaliza: si usas axios vendrá en res.data; si es fetch custom quizá venga directo
+    const data = (res as any)?.data ?? res;
+
+    // 3) Guarda el dato ya normalizado
+    setAlmacenData(data as AlmacenResponse);
+
+    // 4) Abre modal/ventana
+    setIsAlmacenOpen(true);
+
+  } catch (err: any) {
+    console.error("❌ Error fetch almacén:", err);
+    setErrorMsg(err instanceof Error ? err.message : "Error desconocido");
+  }
   };
 
   if (!isOpen) return null;
@@ -130,7 +153,7 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Object.entries(data).map(([k, v]) =>
-                      v === undefined ? null : (
+                      v === undefined || v === null ? null : (
                         <div key={k} className="group relative overflow-hidden bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-all duration-200">
                           <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                           <div className="relative">
@@ -252,6 +275,7 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
                 paquetes={(data as any).cantidadPaquetes} 
                 batch={(data as any).cantidadBatch}  
                 catidades={(data as any)}
+                almacenData={almacenData}
               />
             </div>
           </div>

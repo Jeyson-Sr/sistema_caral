@@ -124,6 +124,7 @@ const CrearEnvase: React.FC = () => {
   });
 
   const [mostrarFormulacion, setMostrarFormulacion] = useState(false);
+  const [mostrarFormulacionPulp, setMostrarFormulacionPulp] = useState(true);
   const { loading, handleCreateProduct } = useCreateProduct();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -262,7 +263,11 @@ const CrearEnvase: React.FC = () => {
                   type="text"
                   name="marca"
                   value={formData.marca}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    handleChange(e);
+                    const val = e.target.value.toLowerCase();
+                    setMostrarFormulacionPulp(val !== 'pulp');
+                  }}
                   placeholder="Selecciona marca..."
                   list="marcasList"
                   required
@@ -359,6 +364,7 @@ const CrearEnvase: React.FC = () => {
               gradient="from-purple-50/30 to-indigo-50/20"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {mostrarFormulacionPulp && (
                 <Field 
                   label="Litros por Batch" 
                   hint="Volumen de producción por lote"
@@ -371,6 +377,7 @@ const CrearEnvase: React.FC = () => {
                     placeholder="Ej: 1000"
                   />
                 </Field>
+              )}
 
                 <Field 
                   label="Bebida Final" 

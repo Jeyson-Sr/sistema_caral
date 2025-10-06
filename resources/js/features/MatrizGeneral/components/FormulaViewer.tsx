@@ -10,48 +10,83 @@ import {
   TrendingUp, 
   AlertTriangle,
   CheckCircle2,
-  Calculator
+  Calculator,
+  BarChart3
 } from "lucide-react";
+import { AlmacenResponse } from "../types";
 
 interface FormulaViewerProps {
   data: any;
   paquetes?: number | undefined;
   batch?: number | undefined;
   catidades?: any;
+  almacenData?: AlmacenResponse | null;
 }
 
 
 
-const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, catidades }) => {
+const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, catidades, almacenData }) => {
 
 
     const { computed, inputs } = useProductionMetrics(catidades);
 
-    console.log(computed.paquetes_lanzados)
+    const getSaldoFinal = (articulo: number): number | null => {
+      if (Array.isArray(almacenData)) {
+        const item = almacenData.find((i) => i.articulo === articulo);
+        return item ? item.saldo_final : null;
+      }
+      return null;
+    };  
+
+    function calcularDiferencia(stcok: any, cantidad: any): number {
+      const stockFinal = Number(stcok);
+      const cantidadFinal = Number(cantidad);
+      if (isNaN(stockFinal) || isNaN(cantidadFinal)) {
+        return 0;
+      }
+      return stockFinal - cantidadFinal;
+    }
 
 
 
     function calcularValor(
-  data: any,
-  row: any,
-  computed: ComputedMetrics,
-  paquetes?: number,
-  batch?: number
-): number | string {
-  let multiplier = 1;
+        data: any,
+        row: any,
+        computed: ComputedMetrics,
+        paquetes?: number,
+        batch?: number
+      ): number | string {
+        let multiplier = 1;
 
-  if (typeof data.cantidadPaquetes === "number" && data.cantidadPaquetes > 0) {
-    multiplier = data.cantidadPaquetes;
-  } else if (typeof data.cantidadBatch === "number" && data.cantidadBatch > 0) {
-    multiplier = computed.paquetes_lanzados ?? 1;
-  }
+        if (typeof data.cantidadPaquetes === "number" && data.cantidadPaquetes > 0) {
+          multiplier = data.cantidadPaquetes;
+        } else if (typeof data.cantidadBatch === "number" && data.cantidadBatch > 0) {
+          multiplier = computed.paquetes_lanzados ?? 1;
+        }
 
-  const base = paquetes || computed.paquetes_lanzados || 1;
-  const value = row.cantidad * multiplier * base;
+        const base = paquetes || computed.paquetes_lanzados || 1;
+        const value = row.cantidad * multiplier * base;
 
-  // return Number.isInteger(value) ? value : value.toFixed(4);
-  return Math.round(value).toLocaleString("es-MX");
-}
+        return Number.isInteger(value) ? value : value.toFixed(4);
+        // return Math.round(value).toLocaleString("es-MX");
+      }
+
+    // Helper to format a quantity that may be multiplied by batch
+    const formatBatch = (qty: number, batchMultiplier: number): number | string => {
+      const total = qty * batchMultiplier;
+      return Number.isInteger(total) ? total : total.toFixed(4);
+    };
+
+    const renderDiferencia = (stock: number | null, cantidad: number | string): React.ReactElement => {
+      const diff = calcularDiferencia(stock, cantidad);
+      const isPositive = Number(diff) >= 0;
+      return (
+        <span className={isPositive ? "text-emerald-600" : "text-rose-600"}>
+          {Math.abs(Number(diff)).toLocaleString("es-MX")}
+          {isPositive ? " ✓" : " -"}
+        </span>
+      );
+    };
 
 
 
@@ -108,10 +143,22 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                         Descripción
                       </div>
                     </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <FileText size={14} />
+                        Stock
+                      </div>
+                    </th>
                     <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
                       <div className="flex items-center justify-end gap-2">
                         <TrendingUp size={14} />
                         Cantidad
+                      </div>
+                    </th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      <div className="flex items-center justify-end gap-2">
+                        <BarChart3 size={14} />
+                        Diferencia
                       </div>
                     </th>
                   </tr>
@@ -129,11 +176,19 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                           {row.descripcion}
                         </span>
                       </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-slate-800 font-medium">
+                          {(getSaldoFinal(row.articulo) || 0).toLocaleString("es-MX")}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 text-right">
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
-                          {Number.isInteger(row.cantidad * (batch || 1))
-                            ? row.cantidad * (batch || 1)
-                            : (row.cantidad * (batch || 1)).toFixed(4)}
+                          {formatBatch(row.cantidad, batch || 1)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
+                          {renderDiferencia(getSaldoFinal(row.articulo), formatBatch(row.cantidad, batch || 1))}
                         </span>
                       </td>
                     </tr>
@@ -186,10 +241,22 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                         Descripción
                       </div>
                     </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <Package size={14} />
+                        Stock
+                      </div>
+                    </th>
                     <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
                       <div className="flex items-center justify-end gap-2">
                         <TrendingUp size={14} />
                         Cantidad
+                      </div>
+                    </th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      <div className="flex items-center justify-end gap-2">
+                        <BarChart3 size={14} />
+                        Diferencia
                       </div>
                     </th>
                   </tr>
@@ -207,9 +274,19 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                           {row.descripcion}
                         </span>
                       </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-slate-800 font-medium">
+                          {Math.round(getSaldoFinal(row.articulo) || 0).toLocaleString("es-MX")}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 text-right">
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
-                            {calcularValor(data, row, computed, paquetes, batch)}
+                            {calcularValor(data, row, computed, paquetes, batch).toLocaleString("es-MX")}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <span  className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
+                            {renderDiferencia(getSaldoFinal(row.articulo), calcularValor(data, row, computed, paquetes, batch))}  
                         </span>
                       </td>
                     </tr>

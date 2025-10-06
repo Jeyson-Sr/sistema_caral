@@ -40,3 +40,23 @@ export type FormulaResponse = {
   // otros campos que retorne tu backend
   [key: string]: any;
 };
+
+export type AlmacenResponse = {
+  articulo: string;
+  descripcion: string;
+  u_m: string;
+  contenido: string;
+  saldo_inicial: string;
+  ingresos: string;
+  salidas: string;
+  saldo_final: string;
+  lin_art: string;
+  nombre_linea: string;
+};
+
+export type Almacen = {
+  id: number;
+  articulo: number | null;
+  descripcion: string;
+  nombre_linea?: string;
+};
