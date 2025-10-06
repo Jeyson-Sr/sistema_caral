@@ -49,27 +49,35 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
 
 
 
+    function esCajaMaster(row: any): boolean {
+      return row?.descripcion && String(row.descripcion).toUpperCase().includes("CAJA MASTER");
+    }
+
     function calcularValor(
-        data: any,
-        row: any,
-        computed: ComputedMetrics,
-        paquetes?: number,
-        batch?: number
-      ): number | string {
-        let multiplier = 1;
+      data: any,
+      row: any,
+      computed: ComputedMetrics,
+      paquetes?: number,
+      batch?: number
+    ): number | string {
 
-        if (typeof data.cantidadPaquetes === "number" && data.cantidadPaquetes > 0) {
-          multiplier = data.cantidadPaquetes;
-        } else if (typeof data.cantidadBatch === "number" && data.cantidadBatch > 0) {
-          multiplier = computed.paquetes_lanzados ?? 1;
-        }
-
-        const base = paquetes || computed.paquetes_lanzados || 1;
-        const value = row.cantidad * multiplier * base;
-
-        return Number.isInteger(value) ? value : value.toFixed(4);
-        // return Math.round(value).toLocaleString("es-MX");
+      if (esCajaMaster(row)) {
+        return Math.round(Number(computed.paquetes_lanzados)) ?? 1;
       }
+
+      let multiplier = 1;
+
+      if (typeof data.cantidadPaquetes === "number" && data.cantidadPaquetes > 0) {
+        multiplier = data.cantidadPaquetes;
+      } else if (typeof data.cantidadBatch === "number" && data.cantidadBatch > 0) {
+        multiplier = computed.paquetes_lanzados ?? 1;
+      }
+
+      const base = paquetes || computed.paquetes_lanzados || 1;
+      const value = row.cantidad * multiplier * base;
+
+      return Number.isInteger(value) ? value : value.toFixed(4);
+    }
 
     // Helper to format a quantity that may be multiplied by batch
     const formatBatch = (qty: number, batchMultiplier: number): number | string => {
