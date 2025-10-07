@@ -28,6 +28,8 @@ interface FormulaViewerProps {
 const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, catidades, almacenData }) => {
 
 
+
+
     const { computed, inputs } = useProductionMetrics(catidades);
 
     const getSaldoFinal = (articulo: number): number | null => {
@@ -46,8 +48,6 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
       }
       return stockFinal - cantidadFinal;
     }
-
-
 
     function esCajaMaster(row: any): boolean {
       return row?.descripcion && String(row.descripcion).toUpperCase().includes("CAJA MASTER");
@@ -79,7 +79,6 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
       return Number.isInteger(value) ? value : value.toFixed(4);
     }
 
-    // Helper to format a quantity that may be multiplied by batch
     const formatBatch = (qty: number, batchMultiplier: number): number | string => {
       const total = qty * batchMultiplier;
       return Number.isInteger(total) ? total : total.toFixed(4);
@@ -96,6 +95,13 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
       );
     };
 
+    const BatchMin = (stock: Number, cantidad: Number):Number | string=> {
+      if (isNaN(Number(stock)) || isNaN(Number(cantidad))) {
+        return 0;
+      }
+      return (Number(stock) / Number(cantidad)) * (batch || 1);
+    } 
+    
 
 
   if (!data) {
@@ -137,36 +143,42 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
             {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50/80 backdrop-blur-sm">
+                <thead className="bg-slate-600/70 backdrop-blur-sm">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-100 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Hash size={14} />
                         Artículo
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-100 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <FileText size={14} />
                         Descripción
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-100 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <FileText size={14} />
                         Stock
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-100 uppercase tracking-wider">
                       <div className="flex items-center justify-end gap-2">
                         <TrendingUp size={14} />
                         Cantidad
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-100 uppercase tracking-wider">
                       <div className="flex items-center justify-end gap-2">
                         <BarChart3 size={14} />
                         Diferencia
+                      </div>
+                    </th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-100 uppercase tracking-wider">
+                      <div className="flex items-center justify-end gap-2">
+                        <BarChart3 size={14} />
+                        BatchMin
                       </div>
                     </th>
                   </tr>
@@ -175,28 +187,39 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                   {data.jarabe.map((row: any, idx: number) => (
                     <tr key={idx} className="hover:bg-slate-50/80 transition-colors duration-150">
                       <td className="px-6 py-4">
+                        {/* Artículo */}
                         <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-sm font-medium">
                           #{row.articulo}
                         </span>
                       </td>
                       <td className="px-6 py-4">
+                        {/* Descripción */}
                         <span className="text-sm text-slate-800 font-medium">
                           {row.descripcion}
                         </span>
                       </td>
                       <td className="px-6 py-4">
+                        {/* Stock */}
                         <span className="text-sm text-slate-800 font-medium">
                           {(getSaldoFinal(row.articulo) || 0).toLocaleString("es-MX")}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
+                        {/* Produccion */}
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
                           {formatBatch(row.cantidad, batch || 1)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
+                        {/* Diferencia */}
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
                           {renderDiferencia(getSaldoFinal(row.articulo), formatBatch(row.cantidad, batch || 1))}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {/* BatchMin */}
+                        <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
+                          {Number(BatchMin(Number(getSaldoFinal(row.articulo)), Number(formatBatch(row.cantidad, batch || 1)))).toFixed(2)}
                         </span>
                       </td>
                     </tr>
@@ -235,36 +258,42 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
             {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50/80 backdrop-blur-sm">
+                <thead className="bg-slate-600/70 backdrop-blur-sm">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-100 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Hash size={14} />
                         Artículo
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-100 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <FileText size={14} />
                         Descripción
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-100 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Package size={14} />
                         Stock
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-100 uppercase tracking-wider">
                       <div className="flex items-center justify-end gap-2">
                         <TrendingUp size={14} />
                         Cantidad
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-100 uppercase tracking-wider">
                       <div className="flex items-center justify-end gap-2">
                         <BarChart3 size={14} />
                         Diferencia
+                      </div>
+                    </th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-slate-100 uppercase tracking-wider">
+                      <div className="flex items-center justify-end gap-2">
+                        <BarChart3 size={14} />
+                        BatchMin
                       </div>
                     </th>
                   </tr>
@@ -273,28 +302,39 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                   {data.envasado.map((row: any, idx: number) => (
                     <tr key={idx} className="hover:bg-slate-50/80 transition-colors duration-150">
                       <td className="px-6 py-4">
+                        {/* Artículo */}
                         <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-sm font-medium">
                           #{row.articulo}
                         </span>
                       </td>
                       <td className="px-6 py-4">
+                        {/* Descripción */}
                         <span className="text-sm text-slate-800 font-medium">
                           {row.descripcion}
                         </span>
                       </td>
                       <td className="px-6 py-4">
+                        {/* Stock */}
                         <span className="text-sm text-slate-800 font-medium">
                           {Math.round(getSaldoFinal(row.articulo) || 0).toLocaleString("es-MX")}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
+                        {/* Produccion */}
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
                             {calcularValor(data, row, computed, paquetes, batch).toLocaleString("es-MX")}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
+                        {/* Diferencia */}
                         <span  className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
                             {renderDiferencia(getSaldoFinal(row.articulo), calcularValor(data, row, computed, paquetes, batch))}  
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {/* BatchMin */}
+                        <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
+                          {BatchMin(Number(getSaldoFinal(row.articulo)), Number(calcularValor(data, row, computed, paquetes, batch))).toLocaleString("es-MX")}
                         </span>
                       </td>
                     </tr>

@@ -13,6 +13,18 @@ input[type=number] {
 }
 
 
+/* Oculta la barra de desplaçament vertical i horitzontal */
+::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  -ms-overflow-style: none;  /* IE i Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+
+
 
 
 @plugin 'tailwindcss-animate';

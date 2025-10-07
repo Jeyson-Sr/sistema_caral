@@ -242,7 +242,7 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
             setFormulaData(null);
           }} aria-hidden />
           
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-7xl w-full mx-auto my-12 overflow-hidden">
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-8xl w-full mx-auto my-12 overflow-hidden">
             {/* Formula Header */}
             <div className="relative overflow-hidden bg-gradient-to-r from-emerald-500 to-green-600 p-6">
               <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
@@ -269,7 +269,7 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
             </div>
             
             {/* Formula Content */}
-            <div className="p-8 bg-gradient-to-br from-slate-50 to-white max-h-[80vh] overflow-auto">
+            <div className="p-8 bg-gradient-to-br from-slate-50 to-white max-h-[80vh]  overflow-auto">
               <FormulaViewer 
                 data={formulaData} 
                 paquetes={(data as any).cantidadPaquetes} 

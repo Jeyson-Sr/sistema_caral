@@ -127,51 +127,51 @@ export default function MatrizGeneralBlock() {
             {/* Table Content */}
             <div className="relative overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
+                <thead className="bg-slate-700/70 backdrop-blur-sm border-b border-slate-600 ">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Settings size={14} />
                         Línea
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Hash size={14} />
                         SKU Envasado
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Beaker size={14} />
                         SKU Jarabe
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Package size={14} />
                         Formato
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Palette size={14} />
                         Marca
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <FlaskConical size={14} />
                         Sabor
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <BarChart3 size={14} />
                         Batch/Paquetes
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <FileSpreadsheet size={14} />
                         Fórmula
