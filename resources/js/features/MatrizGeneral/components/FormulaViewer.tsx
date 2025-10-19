@@ -74,14 +74,14 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
       }
 
       const base = paquetes || computed.paquetes_lanzados || 1;
-      const value = row.cantidad * multiplier * base;
+      const value = Math.round(row.cantidad * multiplier * base);
 
-      return Number.isInteger(value) ? value : value.toFixed(4);
+      return value;
     }
 
     const formatBatch = (qty: number, batchMultiplier: number): number | string => {
-      const total = qty * batchMultiplier;
-      return Number.isInteger(total) ? total : total.toFixed(4);
+      const total = Math.round(qty * batchMultiplier);
+      return total;
     };
 
     const renderDiferencia = (stock: number | null, cantidad: number | string): React.ReactElement => {
@@ -89,7 +89,7 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
       const isPositive = Number(diff) >= 0;
       return (
         <span className={isPositive ? "text-emerald-600" : "text-rose-600"}>
-          {Math.abs(Number(diff)).toLocaleString("es-MX")}
+          {Math.abs((Number(diff))).toLocaleString("es-MX")}
           {isPositive ? " ✓" : " -"}
         </span>
       );
@@ -99,7 +99,7 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
       if (isNaN(Number(stock)) || isNaN(Number(cantidad))) {
         return 0;
       }
-      return (Number(stock) / Number(cantidad)) * (batch || 1);
+      return (Number(stock) / Number(cantidad)) * (batch ?? computed?.paquetes_lanzados ?? 1);
     } 
     
 
@@ -201,11 +201,11 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                       <td className="px-6 py-4">
                         {/* Stock */}
                         <span className="text-sm text-slate-800 font-medium">
-                          {(getSaldoFinal(row.articulo) || 0).toLocaleString("es-MX")}
+                          {Number(getSaldoFinal(row.articulo) || 0).toLocaleString("es-MX")}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        {/* Produccion */}
+                        {/* Cantidad */}
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
                           {formatBatch(row.cantidad, batch || 1)}
                         </span>
@@ -219,7 +219,7 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                       <td className="px-6 py-4 text-right">
                         {/* BatchMin */}
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
-                          {Number(BatchMin(Number(getSaldoFinal(row.articulo)), Number(formatBatch(row.cantidad, batch || 1)))).toFixed(2)}
+                          {Number(Number(BatchMin(Number(getSaldoFinal(row.articulo)), Number(formatBatch(row.cantidad, batch || 1)))).toFixed(1)).toLocaleString("es-MX")}
                         </span>
                       </td>
                     </tr>
@@ -316,11 +316,11 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                       <td className="px-6 py-4">
                         {/* Stock */}
                         <span className="text-sm text-slate-800 font-medium">
-                          {Math.round(getSaldoFinal(row.articulo) || 0).toLocaleString("es-MX")}
+                          {Number(getSaldoFinal(row.articulo) || 0).toLocaleString("es-MX")}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        {/* Produccion */}
+                        {/* Cantidad */}
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
                             {calcularValor(data, row, computed, paquetes, batch).toLocaleString("es-MX")}
                         </span>
@@ -334,7 +334,7 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                       <td className="px-6 py-4 text-right">
                         {/* BatchMin */}
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
-                          {BatchMin(Number(getSaldoFinal(row.articulo)), Number(calcularValor(data, row, computed, paquetes, batch))).toLocaleString("es-MX")}
+                          {Number(Number(BatchMin(Number(getSaldoFinal(row.articulo)), Number(calcularValor(data, row, computed, paquetes, batch)))).toFixed(0)).toLocaleString("es-MX")}
                         </span>
                       </td>
                     </tr>

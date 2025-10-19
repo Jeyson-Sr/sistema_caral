@@ -166,7 +166,16 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
                               </span>
                             </div>
                             <div className="text-lg font-bold text-slate-800">
-                              {String(v)}
+                              {k.includes('sku') || k.toLowerCase().includes('factorazucar') ? String(v) : (
+                                <>
+                                  {Number(v).toLocaleString('es-MX')}
+                                  {k.toLowerCase().includes('formato') && (
+                                    <span className="ml-1 text-sm text-slate-500">
+                                      {Number(v) < 0.9 ? 'ml' : 'L'}
+                                    </span>
+                                  )}
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
