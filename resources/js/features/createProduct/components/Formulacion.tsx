@@ -39,12 +39,13 @@ const useAlmacen05 = (endpoint = '/almacen/05') => {
   }, [endpoint]);
 
   const isPreforma = (desc = '') => desc.toLowerCase().includes('preforma');
+  const isGasCarbonico = (desc = '') => desc.toLowerCase().includes('gas carbonico');
 
   const envasesList = almacen05.filter(
-    (a) => (a.nombre_linea ?? '').toLowerCase() === 'envases y embalajes' || isPreforma(a.descripcion || '')
+    (a) => (a.nombre_linea ?? '').toLowerCase() === 'envases y embalajes' || isPreforma(a.descripcion || '') || isGasCarbonico(a.descripcion || '')
   );
   const materiaList = almacen05.filter(
-    (a) => (a.nombre_linea ?? '').toLowerCase() === 'materia prima e insumos' && !isPreforma(a.descripcion || '')
+    (a) => (a.nombre_linea ?? '').toLowerCase() === 'materia prima e insumos' && !isPreforma(a.descripcion || '') && !isGasCarbonico(a.descripcion || '')
   );
 
   return { almacen05, envasesList, materiaList, loading };
