@@ -52,6 +52,9 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
     function esCajaMaster(row: any): boolean {
       return row?.descripcion && String(row.descripcion).toUpperCase().includes("CAJA MASTER");
     }
+    function esGasCarbonico(row: any): boolean {
+      return row?.descripcion && String(row.descripcion).toUpperCase().includes("GAS CARBONICO");
+    }
 
     function calcularValor(
       data: any,
@@ -63,6 +66,10 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
 
       if (esCajaMaster(row)) {
         return Math.round(Number(computed.paquetes_lanzados)) ?? 1;
+      }
+      if (esGasCarbonico(row)) {
+        const cantidad = Number(row.cantidad);
+        return Math.round((Number(computed.cu30l ?? 0) * 30) * cantidad) ?? 0;
       }
 
       let multiplier = 1;
