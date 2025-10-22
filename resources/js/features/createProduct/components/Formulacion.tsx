@@ -62,7 +62,16 @@ interface RowProps {
   onLookup: (id: number, articuloValue: string) => void;
   unidadPaquete?: string | number;
 }
-const Row: React.FC<RowProps> = ({ fila, index, datalistId, onChange, onLookup, unidadPaquete }) => {
+interface RowProps {
+  fila: FilaFormulacion;
+  index: number;
+  datalistId: string;
+  onChange: (id: number, campo: keyof FilaFormulacion, valor: string) => void;
+  onLookup: (id: number, articuloValue: string) => void;
+  onDelete: (id: number) => void;
+  unidadPaquete?: string | number;
+}
+const Row: React.FC<RowProps> = ({ fila, index, datalistId, onChange, onLookup, onDelete, unidadPaquete }) => {
   const [editingCode, setEditingCode] = React.useState(false);
   const [codeValue, setCodeValue] = React.useState('');
 
@@ -148,6 +157,21 @@ const Row: React.FC<RowProps> = ({ fila, index, datalistId, onChange, onLookup, 
             )}
           </div>
         </div>
+
+        {/* Delete row button */}
+        <div className="flex items-end pb-3">
+          <button
+            type="button"
+            onClick={() => onDelete(fila.id)}
+            className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 transition-all duration-200 hover:shadow"
+            title="Borrar fila"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
       </div>
     </div>
   );
@@ -161,6 +185,7 @@ const rowAreEqual = (a: RowProps, b: RowProps) =>
   a.datalistId === b.datalistId &&
   a.onChange === b.onChange &&
   a.onLookup === b.onLookup &&
+  a.onDelete === b.onDelete &&
   a.unidadPaquete === b.unidadPaquete;
 
 const MemoRow = memo(Row, rowAreEqual);
@@ -173,19 +198,20 @@ interface EnvasadoFormProps {
   envasesList: Almacen[];
   onChange: (id: number, campo: keyof FilaFormulacion, valor: string) => void;
   onLookup: (id: number, articuloValue: string) => void;
+  onDelete: (id: number) => void;
   addRow: () => void;
   onSubmit: (e: React.FormEvent) => void;
   submitting: boolean;
   unidadPaquete?: string | number;
 }
-const EnvasadoForm: React.FC<EnvasadoFormProps> = ({ filas, envasesList, onChange, onLookup, addRow, onSubmit, submitting, unidadPaquete }) => {
+const EnvasadoForm: React.FC<EnvasadoFormProps> = ({ filas, envasesList, onChange, onLookup, onDelete, addRow, onSubmit, submitting, unidadPaquete }) => {
   const datalistId = 'almacenes-envases';
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <div className="space-y-4">
         {filas.map((f, i) => (
           <div key={f.id}>
-            <MemoRow fila={f} index={i} datalistId={datalistId} onChange={onChange} onLookup={onLookup} unidadPaquete={unidadPaquete} />
+            <MemoRow fila={f} index={i} datalistId={datalistId} onChange={onChange} onLookup={onLookup} onDelete={onDelete} unidadPaquete={unidadPaquete} />
           </div>
         ))}
       </div>
@@ -214,20 +240,21 @@ interface JarabeFormProps {
   materiaList: Almacen[];
   onChange: (id: number, campo: keyof FilaFormulacion, valor: string) => void;
   onLookup: (id: number, articuloValue: string) => void;
+  onDelete: (id: number) => void;
   addRow: () => void;
   onSubmit: (e: React.FormEvent) => void;
   submitting: boolean;
   sku_jarabe_global?: number | null;
   unidadPaquete?: string | number;
 }
-const JarabeForm: React.FC<JarabeFormProps> = ({ filas, materiaList, onChange, onLookup, addRow, onSubmit, submitting, unidadPaquete }) => {
+const JarabeForm: React.FC<JarabeFormProps> = ({ filas, materiaList, onChange, onLookup, onDelete, addRow, onSubmit, submitting, unidadPaquete }) => {
   const datalistId = 'almacenes-materia';
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <div className="space-y-4">
         {filas.map((f, i) => (
           <div key={f.id}>
-            <MemoRow fila={f} index={i} datalistId={datalistId} onChange={onChange} onLookup={onLookup} unidadPaquete={unidadPaquete} />
+            <MemoRow fila={f} index={i} datalistId={datalistId} onChange={onChange} onLookup={onLookup} onDelete={onDelete} unidadPaquete={unidadPaquete} />
           </div>
         ))}
       </div>
@@ -462,6 +489,15 @@ const Formulacion: React.FC<Props> = ({ sku_description, jarabe, unidadPaquete, 
   const addEnvasadoRow = useCallback(() => setFilas((prev) => [...prev, { id: nextId(prev), descripcion: '', articulo: null, cantidad: '' }]), []);
   const addJarabeRow = useCallback(() => setJarabeFilas((prev) => [...prev, { id: nextId(prev), descripcion: '', articulo: null, sku_jarabe: sku_jarabe ?? null, cantidad: '' }]), [sku_jarabe]);
 
+  // Handlers para borrar filas
+  const handleDeleteEnvasado = useCallback((id: number) => {
+    setFilas((prev) => prev.filter((f) => f.id !== id));
+  }, []);
+
+  const handleDeleteJarabe = useCallback((id: number) => {
+    setJarabeFilas((prev) => prev.filter((f) => f.id !== id));
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 py-8 px-4">
       <div className="max-w-7xl mx-auto">
@@ -503,6 +539,7 @@ const Formulacion: React.FC<Props> = ({ sku_description, jarabe, unidadPaquete, 
                   }
                 }}
                 onLookup={handleLookupEnvasado}
+                onDelete={handleDeleteEnvasado}
                 addRow={addEnvasadoRow}
                 onSubmit={onSubmitEnvasado}
                 submitting={submitting}
@@ -528,6 +565,7 @@ const Formulacion: React.FC<Props> = ({ sku_description, jarabe, unidadPaquete, 
                 materiaList={materiaList}
                 onChange={handleChangeJarabe}
                 onLookup={handleLookupJarabe}
+                onDelete={handleDeleteJarabe}
                 addRow={addJarabeRow}
                 onSubmit={onSubmitJarabe}
                 submitting={submitting}
