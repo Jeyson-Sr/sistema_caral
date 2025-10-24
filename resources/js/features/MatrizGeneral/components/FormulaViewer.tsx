@@ -64,8 +64,11 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
       row: any,
       computed: ComputedMetrics,
       paquetes?: number,
-      batch?: number
+      batch?: number,
+      valor?: boolean,
     ): number | string {
+
+      
 
       if (esCajaMaster(row)) {
         return Math.round(Number(computed.paquetes_lanzados)) ?? 1;
@@ -74,11 +77,22 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
         const cantidad = Number(row.cantidad);
         return Math.round((Number(computed.cu30l ?? 0) * 30) * cantidad) ?? 0;
       }
+
+      if (valor === true) {
+        // Calcular por batch
+        if (esAzucar(row)) {
+          return Math.round((Number(computed.cant_azucar_batch ?? 0)) * (batch ?? 1)) ?? 0;
+        }
+
+        const baseBatch = batch ?? 1;
+        const valueBatch = Math.round(row.cantidad * baseBatch);
+        return valueBatch;
+      }
+
+      // Flujo normal por paquetes
       if (esAzucar(row)) {
         return Math.round((Number(computed.cant_azucar_batch ?? 0)) * (batch ?? 1)) ?? 0;
       }
-
-
 
       let multiplier = 1;
 
@@ -94,11 +108,11 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
       return value;
     }
 
-    const formatBatch = (qty: number, batchMultiplier: number): number | string => {
+    // const formatBatch = (qty: number, batchMultiplier: number): number | string => {
 
-      const total = Math.round(qty * batchMultiplier);
-      return total;
-    };
+    //   const total = Math.round(qty * batchMultiplier);
+    //   return total;
+    // };
 
     const renderDiferencia = (stock: number | null, cantidad: number | string): React.ReactElement => {
       const diff = calcularDiferencia(stock, cantidad);
@@ -223,19 +237,19 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                       <td className="px-6 py-4 text-right">
                         {/* Cantidad */}
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
-                          {formatBatch(row.cantidad, batch || 1).toLocaleString("es-MX")}
+                          {calcularValor(data, row, computed, paquetes, batch, true).toLocaleString("es-MX")}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         {/* Diferencia */}
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
-                          {renderDiferencia(getSaldoFinal(row.articulo), formatBatch(row.cantidad, batch || 1))}
+                          {renderDiferencia(getSaldoFinal(row.articulo), calcularValor(data, row, computed, paquetes, batch, true))}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         {/* BatchMin */}
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
-                          {Number(Number(BatchMin(Number(getSaldoFinal(row.articulo)), Number(formatBatch(row.cantidad, batch || 1)))).toFixed(1)).toLocaleString("es-MX")}
+                          {Number(Number(BatchMin(Number(getSaldoFinal(row.articulo)), Number(calcularValor(data, row, computed, paquetes, batch, true)))).toFixed(1)).toLocaleString("es-MX")}
                         </span>
                       </td>
                     </tr>
