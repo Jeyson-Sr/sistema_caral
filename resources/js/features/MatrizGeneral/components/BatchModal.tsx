@@ -97,8 +97,9 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
                 <div className="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30">
                   <Calculator className="w-6 h-6 text-white" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white">
+                <div className="flex flex-row items-center justify-between w-170">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">
                     {title ?? "Calculadora de Producción"}
                   </h2>
                   <div className="flex items-center gap-2 mt-1">
@@ -119,6 +120,16 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
                       <span className="text-sm font-medium">
                         Modo: {mode === "batch" ? "Batch" : mode === "paquetes" ? "Paquetes" : "Inválido"}
                       </span>
+                    </div>
+                  </div>
+                  </div>
+
+                  <div className="text-center">
+                    <h4 className="text-xl font-extrabold text-white tracking-wide drop-shadow-md">
+                      {(data as any).sku_descripcion}
+                    </h4>
+                    <div className="mt-1 text-xs font-medium text-emerald-100 uppercase tracking-widest">
+                      SKU {(data as any).skuEnvasado}
                     </div>
                   </div>
                 </div>
