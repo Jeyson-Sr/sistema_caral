@@ -18,6 +18,7 @@ export type Product = {
 };
 
 export type BatchData = {
+  sku_descripcion?: string | null;
   cantidadBatch?: number;
   formato?: number;
   litrosBatch?: number;

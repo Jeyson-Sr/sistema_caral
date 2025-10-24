@@ -61,6 +61,7 @@ export function useMatrizGeneral() {
     const hasJarabe = selectedProduct.sku_jarabe && selectedProduct.sku_jarabe !== "-";
     if (hasJarabe) {
       return {
+        sku_descripcion: selectedProduct.sku_descripcion,
         cantidadBatch: Number(batchValue),
         formato: selectedProduct.formato,
         litrosBatch: selectedProduct.litros_batch,

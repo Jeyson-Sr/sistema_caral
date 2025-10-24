@@ -108,11 +108,6 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
       return value;
     }
 
-    // const formatBatch = (qty: number, batchMultiplier: number): number | string => {
-
-    //   const total = Math.round(qty * batchMultiplier);
-    //   return total;
-    // };
 
     const renderDiferencia = (stock: number | null, cantidad: number | string): React.ReactElement => {
       const diff = calcularDiferencia(stock, cantidad);

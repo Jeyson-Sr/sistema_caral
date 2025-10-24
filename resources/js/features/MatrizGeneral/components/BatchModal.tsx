@@ -153,7 +153,7 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Object.entries(data).map(([k, v]) =>
-                      v === undefined || v === null ? null : (
+                      v === undefined || v === null || k === "sku_descripcion" ? null : (
                         <div key={k} className="group relative overflow-hidden bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-all duration-200">
                           <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                           <div className="relative">
@@ -266,6 +266,14 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
                     <p className="text-emerald-100 mt-1">Detalles completos del proceso</p>
                   </div>
                 </div>
+                  <div className="text-center">
+                    <h4 className="text-xl font-extrabold text-white tracking-wide drop-shadow-md">
+                      {(data as any).sku_descripcion}
+                    </h4>
+                    <div className="mt-1 text-xs font-medium text-emerald-100 uppercase tracking-widest">
+                      SKU {(data as any).skuEnvasado}
+                    </div>
+                  </div>
                 <button
                   onClick={() => {
                     setIsFormulaOpen(false);
