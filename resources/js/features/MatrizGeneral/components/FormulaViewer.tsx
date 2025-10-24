@@ -29,7 +29,6 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
 
 
 
-
     const { computed, inputs } = useProductionMetrics(catidades);
 
     const getSaldoFinal = (articulo: number): number | null => {
@@ -52,8 +51,12 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
     function esCajaMaster(row: any): boolean {
       return row?.descripcion && String(row.descripcion).toUpperCase().includes("CAJA MASTER");
     }
+
     function esGasCarbonico(row: any): boolean {
       return row?.descripcion && String(row.descripcion).toUpperCase().includes("GAS CARBONICO");
+    }
+    function esAzucar(row: any): boolean {
+      return row?.descripcion && String(row.descripcion).toUpperCase().includes("AZUCAR REFINADA ESPECIAL IMPORTADA");
     }
 
     function calcularValor(
@@ -71,6 +74,11 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
         const cantidad = Number(row.cantidad);
         return Math.round((Number(computed.cu30l ?? 0) * 30) * cantidad) ?? 0;
       }
+      if (esAzucar(row)) {
+        return Math.round((Number(computed.cant_azucar_batch ?? 0)) * (batch ?? 1)) ?? 0;
+      }
+
+
 
       let multiplier = 1;
 
@@ -87,6 +95,7 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
     }
 
     const formatBatch = (qty: number, batchMultiplier: number): number | string => {
+
       const total = Math.round(qty * batchMultiplier);
       return total;
     };
@@ -117,7 +126,7 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
         <AlertTriangle size={64} className="mb-4 opacity-30" />
         <h3 className="text-lg font-medium mb-2">No hay datos para mostrar</h3>
         <p className="text-sm text-center max-w-md">
-          No se encontraron datos de fórmula para procesar.
+          No se encontraron datos de receta para procesar.
         </p>
       </div>
     );
@@ -137,7 +146,7 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                   <Beaker className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-slate-800">Fórmula de Jarabe</h4>
+                  <h4 className="text-xl font-bold text-slate-800">Receta de Jarabe</h4>
                   <p className="text-sm text-slate-600 mt-1">{data.jarabe.length} componentes</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-full border border-purple-200">
@@ -185,7 +194,7 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                     <th className="px-6 py-4 text-right text-xs font-semibold text-slate-100 uppercase tracking-wider">
                       <div className="flex items-center justify-end gap-2">
                         <BarChart3 size={14} />
-                        BatchMin
+                        BATCH /MIN
                       </div>
                     </th>
                   </tr>
@@ -214,7 +223,7 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                       <td className="px-6 py-4 text-right">
                         {/* Cantidad */}
                         <span className="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold">
-                          {formatBatch(row.cantidad, batch || 1)}
+                          {formatBatch(row.cantidad, batch || 1).toLocaleString("es-MX")}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -250,7 +259,7 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                   <Package className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-slate-800">Fórmula de Envasado</h4>
+                  <h4 className="text-xl font-bold text-slate-800">Receta de Envasado</h4>
                   <p className="text-sm text-slate-600 mt-1">{data.envasado.length} componentes</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full border border-emerald-200">
@@ -300,7 +309,7 @@ const FormulaViewer: React.FC<FormulaViewerProps> = ({ data, paquetes, batch, ca
                     <th className="px-6 py-4 text-right text-xs font-semibold text-slate-100 uppercase tracking-wider">
                       <div className="flex items-center justify-end gap-2">
                         <BarChart3 size={14} />
-                        BatchMin
+                        PAQ /MIN
                       </div>
                     </th>
                   </tr>

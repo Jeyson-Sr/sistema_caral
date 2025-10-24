@@ -352,6 +352,7 @@ const Formulacion: React.FC<Props> = ({ sku_description, jarabe, unidadPaquete, 
     const resp = await doPost(payload);
     if (resp.ok) {
       alert('Envasado guardado ✅');
+      window.location.href = '/matrizGeneral';
     } else {
       console.error(resp);
       alert('Error guardando envasado: ' + (resp.error || 'ver consola'));
@@ -373,6 +374,7 @@ const Formulacion: React.FC<Props> = ({ sku_description, jarabe, unidadPaquete, 
       alert('Formulación completa guardada ✅');
       setShowJarabeForm(false);
       setShowEnvasado(false);
+      window.location.href = '/matrizGeneral';
     } else {
       console.error(resp);
       // manejo básico de errores 422 si el backend los manda en resp.error

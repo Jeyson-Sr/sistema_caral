@@ -57,7 +57,7 @@ export default function MatrizGeneralBlock() {
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
                       Matriz General
                     </h1>
-                    <p className="text-slate-600 mt-1">Gestión integral de productos, fórmulas y procesos de producción</p>
+                    <p className="text-slate-600 mt-1">Gestión integral de productos, recetas y procesos de producción</p>
                   </div>
                 </div>
                 
@@ -118,7 +118,7 @@ export default function MatrizGeneralBlock() {
                 <div>
                   <h2 className="text-xl font-bold text-slate-800">Matriz de Productos</h2>
                   <p className="text-sm text-slate-600">
-                    {productos.length} productos • Ingresa batch/paquetes para generar fórmulas
+                    {productos.length} productos • Ingresa batch/paquetes para generar recetas
                   </p>
                 </div>
               </div>
@@ -246,7 +246,7 @@ export default function MatrizGeneralBlock() {
                           disabled={!batchNumbers[producto.sku_envasado]}
                         >
                           <Eye size={16} />
-                          {batchNumbers[producto.sku_envasado] ? "Ver Fórmula" : "Ingresa Batch"}
+                          {batchNumbers[producto.sku_envasado] ? "Ver Receta" : "Ingresa Batch"}
                         </button>
                       </td>
                     </tr>
@@ -297,7 +297,7 @@ export default function MatrizGeneralBlock() {
         <BatchModal
           isOpen={showModal}
           onClose={() => setShowModal(false)}
-          title={modalData.skuJarabe ? "Fórmula de Jarabe" : "Fórmula de Envasado"}
+          title={modalData.skuJarabe ? "Receta de Jarabe" : "Receta de Envasado"}
           data={modalData}
         />
       )}

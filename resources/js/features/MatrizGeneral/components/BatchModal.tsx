@@ -168,12 +168,13 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
                             <div className="text-lg font-bold text-slate-800">
                               {k.includes('sku') || k.toLowerCase().includes('factorazucar') ? String(v) : (
                                 <>
-                                  {Number(v).toLocaleString('es-MX')}
+                                  {k.toLowerCase().includes('formato') ? String(v) : Number(v).toLocaleString('es-MX')}
                                   {k.toLowerCase().includes('formato') && (
                                     <span className="ml-1 text-sm text-slate-500">
                                       {Number(v) < 0.9 ? 'ml' : 'L'}
                                     </span>
                                   )}
+                                  {k === 'efiVelocidad' ? '%' : ''}
                                 </>
                               )}
                             </div>
@@ -261,7 +262,7 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
                     <FileSpreadsheet className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-white">Fórmula de Producción</h3>
+                    <h3 className="text-2xl font-bold text-white">Receta de Producción</h3>
                     <p className="text-emerald-100 mt-1">Detalles completos del proceso</p>
                   </div>
                 </div>
