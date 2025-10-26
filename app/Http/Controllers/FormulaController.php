@@ -58,12 +58,12 @@ public function create(Request $request)
             ], 404);
         }
 
-        // Get jarabe data only if SKU is provided
+        // Se obtine el jarabe en base del campo de formulacion_id
         if (!empty($skuJarabe)) {
-            $jarabe = FormulaJarabe::where('sku_jarabe', $skuJarabe)->get();
+            $jarabe = FormulaJarabe::where('formulacion_id', $skuEnvasado)->get();
         }
 
-        // Find matching rows only if jarabe data was requested and found
+        // Busca filas coincidentes solo si se solicitó y encontró datos de jarabe
         $matchingRows = ($jarabe->isNotEmpty() && $envasado->isNotEmpty())
             ? $jarabe->filter(fn($item) => $envasado->contains('articulo', $item->articulo))
             : collect();
