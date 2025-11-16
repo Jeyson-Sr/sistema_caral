@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\AlmacenController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\FormulaController;
+use App\Http\Controllers\AlmacenPlaneamientoController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -48,6 +49,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/formulas', [FormulaController::class, 'store']);
     
     Route::get('/productos/list', [ProductController::class, 'index'])->name('productos.list');
+
+
+
+    Route::post('almacen-planeamiento', [AlmacenPlaneamientoController::class, 'store']);
+    Route::get('almacen-planeamiento/all', [AlmacenPlaneamientoController::class, 'index']);
+
+
+
     
 });
 

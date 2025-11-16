@@ -77,6 +77,7 @@ export function useMatrizGeneral() {
       } as BatchData;
     } else {
       return {
+        sku_descripcion: selectedProduct.sku_descripcion,
         cantidadPaquetes: Number(batchValue),
         formato: selectedProduct.formato,
         velocidadBot: selectedProduct.velocidad_bot,

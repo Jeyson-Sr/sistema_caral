@@ -30,7 +30,7 @@ const fmt = (v: number | null, decimals = 2) =>
 const getMetricIcon = (label: string) => {
   if (label.includes('Paquetes')) return <Package size={16} />;
   if (label.includes('Horas')) return <Clock size={16} />;
-  if (label.includes('Días')) return <Calendar size={16} />;
+  if (label.includes('Turnos')) return <Calendar size={16} />;
   if (label.includes('Minutos')) return <Timer size={16} />;
   if (label.includes('Paletas')) return <BarChart3 size={16} />;
   if (label.includes('Velocidad')) return <Zap size={16} />;
@@ -41,7 +41,7 @@ const getMetricIcon = (label: string) => {
 
 const getMetricColor = (label: string) => {
   if (label.includes('Paquetes')) return 'from-blue-50 to-indigo-50 border-blue-200 text-blue-700';
-  if (label.includes('Horas') || label.includes('Días') || label.includes('Minutos')) return 'from-purple-50 to-violet-50 border-purple-200 text-purple-700';
+  if (label.includes('Horas') || label.includes('Turnos') || label.includes('Minutos')) return 'from-purple-50 to-violet-50 border-purple-200 text-purple-700';
   if (label.includes('Paletas')) return 'from-emerald-50 to-green-50 border-emerald-200 text-emerald-700';
   if (label.includes('Velocidad')) return 'from-amber-50 to-orange-50 border-amber-200 text-amber-700';
   if (label.includes('jarabe') || label.includes('Cu30l')) return 'from-cyan-50 to-blue-50 border-cyan-200 text-cyan-700';
@@ -62,7 +62,7 @@ export default function ProductionMetrics({ data, className = "", compact = fals
     { key: 'paquetes_x_pallets', label: 'Paquetes x Pallet', value: computed.paquetes_x_pallets },
     { key: 'paquetes_lanzados', label: 'Paquetes lanzados', value: computed.paquetes_lanzados },
     { key: 'horas_produccion', label: 'Horas producción', value: computed.horas_produccion, decimals: 3 },
-    { key: 'dias_produccion', label: 'Días producción', value: computed.dias_produccion, decimals: 3 },
+    { key: 'dias_produccion', label: 'Turnos de producción', value: computed.dias_produccion, decimals: 3 },
     { key: 'batch_minutos', label: 'Minutos por batch', value: computed.batch_minutos, decimals: 3 },
     { key: 'paletas_produccion', label: 'Paletas producción', value: computed.paletas_produccion },
     { key: 'cu30l', label: 'Cu30l', value: computed.cu30l },

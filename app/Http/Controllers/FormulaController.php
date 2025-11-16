@@ -64,9 +64,7 @@ public function create(Request $request)
         }
 
         // Busca filas coincidentes solo si se solicitó y encontró datos de jarabe
-        $matchingRows = ($jarabe->isNotEmpty() && $envasado->isNotEmpty())
-            ? $jarabe->filter(fn($item) => $envasado->contains('articulo', $item->articulo))
-            : collect();
+        $matchingRows = [$skuEnvasado, $skuJarabe];
 
         return response()->json([
             'success' => true,

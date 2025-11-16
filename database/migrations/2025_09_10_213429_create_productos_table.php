@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('productos', function (Blueprint $table) {
             $table->id();
+            $table->string('compania', 100)->nullable(); //✅
             $table->integer('linea');//✅
             $table->string('sku_descripcion', 100); // Se genera en base de las columnas de Marca / Sabor / Formato / unidad x paquete
             $table->integer('sku_envasado');
@@ -20,6 +21,8 @@ return new class extends Migration
             $table->decimal('formato', 6, 3); // Ej: 0.625, 3.000 ✅
             $table->string('marca', 50);//✅
             $table->string('sabor', 100);//✅
+            $table->string('mercado', 100)->nullable();//✅
+            $table->string('pais', 100)->nullable();//✅
             $table->decimal('litros_batch', 10, 2)->nullable();
             $table->decimal('bebida_final', 10, 2)->nullable();
             $table->decimal('factor_azucar', 20, 6)->nullable();

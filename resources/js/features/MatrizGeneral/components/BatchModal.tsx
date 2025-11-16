@@ -173,7 +173,7 @@ const BatchModal: React.FC<BatchModalProps> = ({ isOpen, onClose, data, title })
                               {k.includes('cantidad') && <TrendingUp size={14} className="text-slate-500" />}
                               {!k.includes('sku') && !k.includes('cantidad') && <Settings size={14} className="text-slate-500" />}
                               <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                                {labelize(k)}
+                                {k === "efiVelocidad" ? "Eficiencia" : labelize(k)}
                               </span>
                             </div>
                             <div className="text-lg font-bold text-slate-800">
