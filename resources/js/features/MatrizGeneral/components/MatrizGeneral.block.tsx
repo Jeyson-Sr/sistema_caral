@@ -15,7 +15,9 @@ import {
   FileSpreadsheet,
   Hash,
   Palette,
-  FlaskConical
+  FlaskConical,
+  Flag,
+  Building2
 } from "lucide-react";
 import useMatrizGeneral from "../hooks/useMatrizGeneral";
 import BatchModal from "./BatchModal";
@@ -37,12 +39,19 @@ export default function MatrizGeneralBlock() {
     modalData,
   } = useMatrizGeneral();
 
+
+const getButtonLabelBatchOrPack = (skuEnvasado: string, skuJarabe?: string | null) => {
+  if (batchNumbers[skuEnvasado]) return "Ver-Receta";
+  if (skuJarabe && skuJarabe !== "-") return "Ingresa Batch";
+  return "Ingresa Paquetes";
+};
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Matriz General" />
       
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 py-8 px-4">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <div className=" bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 py-5 px-4">
+        <div className="max-w-8xl mx-auto space-y-2">
           
           {/* Header */}
           <div className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/60">
@@ -125,14 +134,20 @@ export default function MatrizGeneralBlock() {
             </div>
 
             {/* Table Content */}
-            <div className="relative overflow-x-auto">
+            <div className="relative overflow-x-auto max-h-[400px] ">
               <table className="w-full">
-                <thead className="bg-slate-700/70 backdrop-blur-sm border-b border-slate-600 ">
+                <thead className="bg-slate-700/70 backdrop-blur-sm border-b border-slate-600 sticky top-0 z-10">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Settings size={14} />
                         Línea
+                      </div>
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <Building2 size={14} />
+                        Compañia
                       </div>
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
@@ -151,6 +166,12 @@ export default function MatrizGeneralBlock() {
                       <div className="flex items-center gap-2">
                         <Package size={14} />
                         Formato
+                      </div>
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <Flag size={14} />
+                        PAIS
                       </div>
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
@@ -179,7 +200,7 @@ export default function MatrizGeneralBlock() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 relative overflow-x-auto max-h-[400px]">
                   {productos.map((producto, index) => (
                     <tr 
                       key={producto.sku_envasado ?? index} 
@@ -191,6 +212,11 @@ export default function MatrizGeneralBlock() {
                             {String(producto.linea).padStart(2, '0')}
                           </span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 text-sm font-medium">
+                          {producto.compania}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 text-sm font-medium">
@@ -209,6 +235,11 @@ export default function MatrizGeneralBlock() {
                       <td className="px-6 py-4">
                         <span className="text-sm font-medium text-slate-800">
                           {producto.formato} <span className="text-slate-500 text-xs">ml</span>
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-medium text-slate-800">
+                          {producto.pais} 
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -246,7 +277,7 @@ export default function MatrizGeneralBlock() {
                           disabled={!batchNumbers[producto.sku_envasado]}
                         >
                           <Eye size={16} />
-                          {batchNumbers[producto.sku_envasado] ? "Ver Receta" : "Ingresa Batch"}
+                          {getButtonLabelBatchOrPack(producto.sku_envasado, producto.sku_jarabe)}
                         </button>
                       </td>
                     </tr>
