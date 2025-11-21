@@ -32,11 +32,11 @@ const mainNavItems: NavItem[] = [
 ];
 
 const footerNavItems: NavItem[] = [
-    {
-        title: 'Configuración',
-        href: '/configuracion',
-        icon: Settings,
-    },
+    // {
+    //     title: 'Configuración',
+    //     href: '/configuracion',
+    //     icon: Settings,
+    // },
 ];
 
 export function AppSidebar() {

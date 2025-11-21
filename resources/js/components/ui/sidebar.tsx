@@ -168,7 +168,9 @@ function Sidebar({
       <div
         data-slot="sidebar"
         className={cn(
-          "bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col",
+          // CAMBIO 1: Agregué borde derecho más suave (border-r border-sidebar-border/50)
+          // Para quitar el borde: elimina "border-r border-sidebar-border/50"
+          "bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col border-r border-sidebar-border/50",
           className
         )}
         {...props}
@@ -239,7 +241,9 @@ function Sidebar({
       >
         <div
           data-sidebar="sidebar"
-          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+          // CAMBIO 2: Agregué borde derecho al sidebar principal (border-r border-sidebar-border/50)
+          // Para quitar: elimina "border-r border-sidebar-border/50"
+          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm border-r border-sidebar-border/50"
         >
           {children}
         </div>
@@ -261,7 +265,9 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn("h-7 w-7", className)}
+      // CAMBIO 3: Agregué hover suave y transición (hover:bg-sidebar-accent/50 transition-all duration-200)
+      // Para quitar: elimina "hover:bg-sidebar-accent/50 transition-all duration-200"
+      className={cn("h-7 w-7 hover:bg-sidebar-accent/50 transition-all duration-200", className)}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
@@ -321,7 +327,9 @@ function SidebarInput({
     <Input
       data-slot="sidebar-input"
       data-sidebar="input"
-      className={cn("bg-background h-8 w-full shadow-none", className)}
+      // CAMBIO 4: Agregué anillo de enfoque visible (focus-visible:ring-2 focus-visible:ring-sidebar-ring transition-all)
+      // Para quitar: elimina "focus-visible:ring-2 focus-visible:ring-sidebar-ring transition-all"
+      className={cn("bg-background h-8 w-full shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring transition-all", className)}
       {...props}
     />
   )
@@ -332,7 +340,10 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-header"
       data-sidebar="header"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      // CAMBIO 5: Agregué padding y borde inferior (p-3 border-b border-sidebar-border/50)
+      // Para quitar borde: elimina "border-b border-sidebar-border/50"
+      // Para cambiar padding: cambia "p-3" por "p-2" o el valor que desees
+      className={cn("flex flex-col gap-2 p-3 border-b border-sidebar-border/50", className)}
       {...props}
     />
   )
@@ -343,7 +354,10 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-footer"
       data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      // CAMBIO 6: Agregué padding, borde superior y margin-top automático (p-3 border-t border-sidebar-border/50 mt-auto)
+      // Para quitar borde: elimina "border-t border-sidebar-border/50"
+      // Para cambiar padding: cambia "p-3" por otro valor
+      className={cn("flex flex-col gap-2 p-3 border-t border-sidebar-border/50 mt-auto", className)}
       {...props}
     />
   )
@@ -357,7 +371,9 @@ function SidebarSeparator({
     <Separator
       data-slot="sidebar-separator"
       data-sidebar="separator"
-      className={cn("bg-sidebar-border mx-2 w-auto", className)}
+      // CAMBIO 7: Color de borde más suave (bg-sidebar-border/50 en lugar de bg-sidebar-border)
+      // Para más contraste: cambia "/50" por "/70" o elimínalo
+      className={cn("bg-sidebar-border/50 mx-2 w-auto", className)}
       {...props}
     />
   )
@@ -368,8 +384,10 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-content"
       data-sidebar="content"
+      // CAMBIO 8: Agregué padding al contenido (p-2)
+      // Para cambiar: modifica "p-2" por "p-3", "p-1", etc.
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden p-2",
         className
       )}
       {...props}
@@ -399,8 +417,14 @@ function SidebarGroupLabel({
     <Comp
       data-slot="sidebar-group-label"
       data-sidebar="group-label"
+      // CAMBIO 9: Mejoré el estilo de las etiquetas de grupo
+      // - font-semibold: texto más grueso
+      // - uppercase: texto en mayúsculas
+      // - tracking-wider: espaciado entre letras
+      // - px-3: más padding horizontal
+      // Para revertir: cambia "font-semibold uppercase tracking-wider" por "font-medium"
       className={cn(
-        "text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        "text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-3 text-xs font-semibold uppercase tracking-wider outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:select-none group-data-[collapsible=icon]:pointer-events-none",
         className
       )}
@@ -420,8 +444,10 @@ function SidebarGroupAction({
     <Comp
       data-slot="sidebar-group-action"
       data-sidebar="group-action"
+      // CAMBIO 10: Mejoré la transición (transition-all duration-200 en lugar de transition-transform)
+      // Para revertir: cambia "transition-all duration-200" por "transition-transform"
       className={cn(
-        "text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-transform focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        "text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-all duration-200 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         // Increases the hit area of the button on mobile.
         "after:absolute after:-inset-2 md:after:hidden",
         "group-data-[collapsible=icon]:hidden",
@@ -469,7 +495,23 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  // ⭐ CAMBIO 11 - EFECTO HOVER Y ACTIVE (LO MÁS IMPORTANTE):
+  // - hover:translate-x-1: mueve el botón 4px a la derecha al pasar el mouse
+  // - hover:shadow-sm: agrega sombra sutil en hover
+  // - data-[active=true]:translate-x-1: mantiene el desplazamiento cuando está activo
+  // - data-[active=true]:shadow-sm: mantiene la sombra cuando está activo
+  // - transition-all duration-200: animación suave de 200ms
+  // - rounded-lg: bordes más redondeados
+  // - gap-3: más espacio entre icono y texto
+  // - p-2.5: más padding
+  // 
+  // Para ajustar el desplazamiento: cambia "translate-x-1" por:
+  //   - translate-x-0.5 (más sutil, 2px)
+  //   - translate-x-2 (más pronunciado, 8px)
+  //   - translate-x-3 (muy pronunciado, 12px)
+  // Para quitar desplazamiento: elimina "hover:translate-x-1" y "data-[active=true]:translate-x-1"
+  // Para quitar sombra: elimina "hover:shadow-sm" y "data-[active=true]:shadow-sm"
+  "peer/menu-button flex w-full items-center gap-3 overflow-hidden rounded-lg p-2.5 text-left text-sm outline-hidden ring-sidebar-ring transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:translate-x-1 hover:shadow-sm focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[active=true]:translate-x-1 data-[active=true]:shadow-sm data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! group-data-[collapsible=icon]:hover:translate-x-0 group-data-[collapsible=icon]:data-[active=true]:translate-x-0 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -478,8 +520,8 @@ const sidebarMenuButtonVariants = cva(
           "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
       },
       size: {
-        default: "h-8 text-sm",
-        sm: "h-7 text-xs",
+        default: "h-9 text-sm",
+        sm: "h-8 text-xs",
         lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
       },
     },
@@ -555,8 +597,10 @@ function SidebarMenuAction({
     <Comp
       data-slot="sidebar-menu-action"
       data-sidebar="menu-action"
+      // CAMBIO 12: Mejoré la transición (transition-all duration-200)
+      // Para revertir: cambia por "transition-transform"
       className={cn(
-        "text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer-hover/menu-button:text-sidebar-accent-foreground absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-transform focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        "text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer-hover/menu-button:text-sidebar-accent-foreground absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-all duration-200 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         // Increases the hit area of the button on mobile.
         "after:absolute after:-inset-2 md:after:hidden",
         "peer-data-[size=sm]/menu-button:top-1",
@@ -580,8 +624,11 @@ function SidebarMenuBadge({
     <div
       data-slot="sidebar-menu-badge"
       data-sidebar="menu-badge"
+      // CAMBIO 13: Agregué fondo a los badges (bg-sidebar-accent/50)
+      // Para quitar: elimina "bg-sidebar-accent/50"
+      // Para cambiar opacidad: cambia /50 por /30, /70, etc.
       className={cn(
-        "text-sidebar-foreground pointer-events-none absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-xs font-medium tabular-nums select-none",
+        "text-sidebar-foreground pointer-events-none absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1.5 text-xs font-medium tabular-nums select-none bg-sidebar-accent/50",
         "peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[active=true]/menu-button:text-sidebar-accent-foreground",
         "peer-data-[size=sm]/menu-button:top-1",
         "peer-data-[size=default]/menu-button:top-1.5",
@@ -610,7 +657,9 @@ function SidebarMenuSkeleton({
     <div
       data-slot="sidebar-menu-skeleton"
       data-sidebar="menu-skeleton"
-      className={cn("flex h-8 items-center gap-2 rounded-md px-2", className)}
+      // CAMBIO 14: Ajusté altura y gaps del skeleton (h-9 gap-3 rounded-lg px-2.5)
+      // Para cambiar: modifica estos valores según tu preferencia
+      className={cn("flex h-9 items-center gap-3 rounded-lg px-2.5", className)}
       {...props}
     >
       {showIcon && (
@@ -637,8 +686,10 @@ function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
     <ul
       data-slot="sidebar-menu-sub"
       data-sidebar="menu-sub"
+      // CAMBIO 15: Borde más suave en sub-menús (border-sidebar-border/50)
+      // Para cambiar: modifica /50 por /70 para más contraste o elimínalo
       className={cn(
-        "border-sidebar-border mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l px-2.5 py-0.5",
+        "border-sidebar-border/50 mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l px-2.5 py-0.5",
         "group-data-[collapsible=icon]:hidden",
         className
       )}
@@ -680,9 +731,17 @@ function SidebarMenuSubButton({
       data-sidebar="menu-sub-button"
       data-size={size}
       data-active={isActive}
+      // ⭐ CAMBIO 16 - EFECTO HOVER EN SUB-MENÚS:
+      // - hover:translate-x-1: desplazamiento a la derecha en hover
+      // - data-[active=true]:translate-x-1: mantiene desplazamiento cuando está activo
+      // - transition-all duration-200: transición suave
+      // - h-8: altura aumentada
+      // 
+      // Para ajustar desplazamiento: cambia translate-x-1 por translate-x-0.5, translate-x-2, etc.
+      // Para quitar: elimina "hover:translate-x-1" y "data-[active=true]:translate-x-1"
       className={cn(
-        "text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent active:text-sidebar-accent-foreground [&>svg]:text-sidebar-accent-foreground flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 outline-hidden focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
-        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
+        "text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:translate-x-1 active:bg-sidebar-accent active:text-sidebar-accent-foreground [&>svg]:text-sidebar-accent-foreground flex h-8 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 outline-hidden transition-all duration-200 focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:translate-x-1",
         size === "sm" && "text-xs",
         size === "md" && "text-sm",
         "group-data-[collapsible=icon]:hidden",
