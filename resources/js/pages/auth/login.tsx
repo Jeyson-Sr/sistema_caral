@@ -2,6 +2,7 @@ import AuthenticatedSessionController from '@/actions/App/Http/Controllers/Auth/
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,80 +10,107 @@ import AuthLayout from '@/layouts/auth-layout';
 import { register } from '@/routes';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, Mail, Lock } from 'lucide-react';
 
 interface LoginProps {
     status?: string;
     canResetPassword: boolean;
 }
 
-export default function Login({ status, canResetPassword }: LoginProps) {
+export default function Login({ status, canResetPassword }: Readonly<LoginProps>) {
     return (
-        <AuthLayout title="Log in to your account" description="Enter your email and password below to log in">
-            <Head title="Log in" />
+        <AuthLayout title="Bienvenido de vuelta" description="Ingresa tus credenciales para continuar">
+            <Head title="Iniciar sesión" />
 
-            <Form {...AuthenticatedSessionController.store.form()} resetOnSuccess={['password']} className="flex flex-col gap-6">
-                {({ processing, errors }) => (
-                    <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    required
-                                    autoFocus
-                                    tabIndex={1}
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
-                                />
-                                <InputError message={errors.email} />
+            <div className="mx-auto w-full max-w-md">
+                {/* Evito pasar className directamente a Card (si su tipado no lo acepta) */}
+                <Card>
+                    <div className="border-none shadow-2xl px-6 py-8">
+                        <CardHeader>
+                            {/* Muevo las clases al wrapper interno */}
+                            <div className="space-y-1 pb-6">
+                                <CardTitle className="text-center text-2xl font-bold tracking-tight">Iniciar sesión</CardTitle>
+                                <CardDescription className="text-center">Ingresa tu correo y contraseña para acceder</CardDescription>
                             </div>
+                        </CardHeader>
 
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
-                                    {canResetPassword && (
-                                        <TextLink href={request()} className="ml-auto text-sm" tabIndex={5}>
-                                            Forgot password?
-                                        </TextLink>
-                                    )}
-                                </div>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    name="password"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="current-password"
-                                    placeholder="Password"
-                                />
-                                <InputError message={errors.password} />
+                        <CardContent>
+                            {/* Si Form acepta className, lo dejo; si no, podrías aplicar wrapper igual */}
+                            <Form {...AuthenticatedSessionController.store.form()} resetOnSuccess={['password']} className="flex flex-col gap-5">
+                                {({ processing, errors }) => (
+                                        <div className="grid gap-4 ">
+                                            <div className="relative">
+                                                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                                <Input
+                                                    id="email"
+                                                    type="email"
+                                                    name="email"
+                                                    required
+                                                    autoFocus
+                                                    
+                                                    autoComplete="email"
+                                                    placeholder="correo@ejemplo.com"
+                                                    className="pl-10"
+                                                />
+                                                <InputError message={errors.email} />
+                                            </div>
+
+                                            <div className="relative">
+                                                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                                <Input
+                                                    id="password"
+                                                    type="password"
+                                                    name="password"
+                                                    required
+                                                    
+                                                    autoComplete="current-password"
+                                                    placeholder="Contraseña"
+                                                    className="pl-10"
+                                                />
+                                                <InputError message={errors.password} />
+                                            </div>
+
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox id="remember" name="remember"  />
+                                                    <Label htmlFor="remember" className="text-sm">Recuérdame</Label>
+                                                </div>
+                                                {canResetPassword && (
+                                                    <TextLink href={request()} className="text-sm" >
+                                                        ¿Olvidaste tu contraseña?
+                                                    </TextLink>
+                                                )}
+                                            </div>
+
+                                            <Button type="submit" className="w-full"  disabled={processing}>
+                                                {processing && <LoaderCircle className="mr-3 h-4 w-4 animate-spin" />}
+                                                Iniciar sesión
+                                            </Button>
+                                        </div>
+                                )}
+                            </Form>
+                        </CardContent>
+
+                        <CardFooter>
+                            {/* Muevo las clases al wrapper del Footer */}
+                             <div className="flex justify-center border-t border-gray-200 pt-5 w-full">
+                                <p className="text-sm text-gray-600">
+                                    ¿No tienes una cuenta?{' '}
+                                    <TextLink href={register()} className="font-medium text-indigo-600 hover:text-indigo-800">
+                                        Regístrate
+                                    </TextLink>
+                                </p>
                             </div>
+                        </CardFooter>
+                    </div>
+                </Card>
 
-                            <div className="flex items-center space-x-3">
-                                <Checkbox id="remember" name="remember" tabIndex={3} />
-                                <Label htmlFor="remember">Remember me</Label>
-                            </div>
-
-                            <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
-                                {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                                Log in
-                            </Button>
-                        </div>
-
-                        <div className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
-                            <TextLink href={register()} tabIndex={5}>
-                                Sign up
-                            </TextLink>
-                        </div>
-                    </>
+                {status && (
+                    <div className="mt-4  text-center text-sm font-medium text-green-600">
+                        {status}
+                    </div>
                 )}
-            </Form>
-
-            {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
+            </div>
         </AuthLayout>
     );
 }
